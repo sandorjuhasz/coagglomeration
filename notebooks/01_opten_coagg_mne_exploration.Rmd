@@ -1,0 +1,154 @@
+---
+title: "OPTEN coagglomeration and MNEs"
+output: html_notebook
+---
+
+developed by sandorjuhasz
+
+```{r}
+source("../scripts/function_collection.R")
+library(data.table)
+library(dplyr)
+options(dplyr.summarise.inform = FALSE)
+library(mefa4)
+library(ggplot2)
+library(ggraph)
+library(patchwork)
+library(cowplot)
+
+
+# OPTEN data import
+firm_info <- fread("../data/opten-dataset/mta_cegalap.csv", encoding='Latin-1')
+
+# geo categories
+geo_data <- fread("../data/iranyitoszamok_BE.csv")
+
+# transaction data
+tr_df <- fread("../data/industry_industry_table_nace3d.csv", sep=";")
+
+# key parameters
+colors <- c("#e9c46a", "#264653")
+region_col <- "jaras"
+industry_col <- "nace3d"
+
+```
+
+
+Less than 5 digit NACE codes seem to be incorrect
+
+```{r}
+# 3-digit NACE codes
+firm_info$nace3d <- substr(firm_info$fotev_kod, 1, 3)
+
+# focal companies dataframe
+cdf <- firm_info %>%
+  select(oo_cegj_sz, hely, irsz, nace3d, letszam_besz18) %>%
+  subset(is.na(irsz) == 0 & is.na(nace3d) == 0) %>%
+  subset(letszam_besz18 >= 2) %>%
+  dplyr::rename(emp = letszam_besz18) %>%
+  data.table()
+
+# join location info
+cdf <- merge(
+  cdf,
+  unique(select(geo_data, irsz, jaras, megye)),
+  by = "irsz",
+  all.x = TRUE,
+  all.y = FALSE) %>%
+  subset(is.na(jaras) == 0)
+
+# add industry-region attributes
+cdf <- cdf %>%
+  group_by(nace3d, jaras) %>%
+  mutate(nr_firms_indreg = n_distinct(oo_cegj_sz),
+         total_emp_indreg = sum(emp)) %>%
+  group_by(nace3d) %>%
+  mutate(nr_firms_ind = n_distinct(oo_cegj_sz),
+         total_emp_ind = sum(emp),
+         nr_regions_ind = n_distinct(jaras)) %>%
+  group_by(jaras) %>%
+  mutate(nr_firms_reg = n_distinct(oo_cegj_sz),
+         total_emp_reg = sum(emp),
+         nr_ind_reg  = n_distinct(nace3d)) %>%
+  data.table()
+
+```
+
+
+Issue -- MAV / Tesco / other HUGE companies
+
+FILTERS -- min 10 firms per industry-region AND min 2 regions per industry AND min 2 industries per region
+
+```{r}
+# introduce filters
+coagg_input <- subset(cdf, (nr_firms_indreg >= 10) & (nr_regions_ind > 1) & (nr_ind_reg > 1))
+
+# constructing coagglomeration table
+indreg_mat <- create_indreg_matrix(coagg_input, region_col, industry_col)
+EGK_mat <- EGK_coagglomeration(indreg_mat)
+coagg_table <- Melt(EGK_mat) %>% data.table()
+colnames(coagg_table) <- c("ind1", "ind2", "coagglomeration")
+
+# remove self loops and make it undirected
+coagg_table$ind1 <- as.character(coagg_table$ind1)
+coagg_table$ind2 <- as.character(coagg_table$ind2)
+coagg_table <- subset(coagg_table, ind1 < ind2)
+
+```
+
+
+```{r}
+# coagglomeration plots
+p1 <- ggplot(coagg_table, aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+
+p2 <- ggplot(coagg_table, aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+
+(p1 + p2)
+```
+
+
+```{r}
+tr_df$ind1 <- as.character(tr_df$ind1)
+tr_df$ind2 <- as.character(tr_df$ind2)
+tr_df <- subset(tr_df, ind1 < ind2)
+
+idf <- merge(
+  coagg_table,
+  select(tr_df, ind1, ind2, nr_trans),
+  by = c("ind1", "ind2"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+```
+
+
+```{r}
+limited_idf <- subset(idf, nr_trans >= 5)
+
+ggplot(limited_idf, aes(x=coagglomeration, y=nr_trans)) +
+  geom_point(size=5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  xlab("Coagglomeration") +
+  ylab("Number of transactions") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+```
+
+
+Skill relatednesss -- ADD
+
