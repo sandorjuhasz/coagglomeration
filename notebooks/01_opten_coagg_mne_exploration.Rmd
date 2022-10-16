@@ -5,7 +5,7 @@ output: html_notebook
 
 developed by sandorjuhasz
 
-```{r}
+```{r, results=FALSE, message=FALSE}
 source("../scripts/function_collection.R")
 library(data.table)
 library(dplyr)
@@ -34,7 +34,9 @@ industry_col <- "nace3d"
 ```
 
 
-Less than 5 digit NACE codes seem to be incorrect
+**Less than 5 digit NACE codes seem to be incorrect**
+
+made corrections by checking 'fotev_nev' and 'fotev_kod'
 
 ```{r}
 # generate 3-digit NACE codes -- NO leading zeros and many NAs
@@ -43,7 +45,7 @@ firm_info$nace3d <- ifelse(nchar(firm_info$fotev_kod)==5,
                            substr(firm_info$fotev_kod, 1, 3),
                            substr(firm_info$fotev_kod, 1, 2))
 
-# focal companies dataframe
+# companies dataframe with key columns
 cdf <- firm_info %>%
   select(oo_cegj_sz, hely, irsz, nace3d, letszam_besz18) %>%
   subset(is.na(irsz) == 0 & is.na(nace3d) == 0) %>%
@@ -60,7 +62,7 @@ cdf <- merge(
   all.y = FALSE) %>%
   subset(is.na(jaras) == 0)
 
-# add industry-region attributes
+# add industry, region and industry-region level attributes for future filters
 cdf <- cdf %>%
   group_by(nace3d, jaras) %>%
   mutate(nr_firms_indreg = n_distinct(oo_cegj_sz),
@@ -78,13 +80,19 @@ cdf <- cdf %>%
 ```
 
 
-Issue -- MAV / Tesco / other HUGE companies
+**Issue -- MAV / Tesco / other HUGE companies**
 
-FILTERS -- min 10 firms per industry-region AND min 2 regions per industry AND min 2 industries per region
+check plants table, hopefully we can filter out firms with 100+ plants
+
+
+**FILTERS**
+
+min 10 firms per industry-region -- AND -- min 2 regions per industry -- AND -- min 2 industries per region
+
 
 ```{r}
 # introduce filters
-coagg_input <- subset(cdf, (nr_firms_indreg >= 10) & (nr_regions_ind > 1) & (nr_ind_reg > 1))
+coagg_input <- subset(cdf, (nr_firms_indreg >= 10) & (nr_regions_ind >= 2) & (nr_ind_reg >= 2))
 
 # constructing coagglomeration table
 indreg_mat <- create_indreg_matrix(coagg_input, region_col, industry_col)
@@ -100,7 +108,7 @@ coagg_table <- subset(coagg_table, ind1 < ind2)
 ```
 
 
-```{r}
+```{r, warning=FALSE}
 # coagglomeration plots
 p1 <- ggplot(coagg_table, aes(x = coagglomeration)) +
   geom_histogram(bins=30, , color="black", fill=colors[2]) +
@@ -120,11 +128,38 @@ p2 <- ggplot(coagg_table, aes(x = coagglomeration)) +
 (p1 + p2)
 ```
 
+**coagglomeration issues**
+
+237 : Cutting, shaping and finishing of stone\
+383 : Materials recovery
+
+663 : Fund management activities \
+701 : Activities of head offices 
+
+351 : Electric power generation, transmission and distribution \
+822 : Activities of call centres 
+
 
 ```{r}
+arrange(coagg_table, desc(coagglomeration))
+```
+
+```{r}
+cdf
+```
+
+
+
+
+
+**transaction data**
+
+
+```{r}
+# manipulation
 tr_df$ind1 <- as.character(tr_df$ind1)
 tr_df$ind2 <- as.character(tr_df$ind2)
-tr_df <- subset(tr_df, ind1 < ind2)
+#tr_df <- subset(tr_df, ind1 < ind2)
 
 idf <- merge(
   coagg_table,
