@@ -47,6 +47,28 @@ EGK_coagglomeration <- function(mat)
 
 
 
+# function to construct coagglomeration table using several filters
+construct_coagglomeration_table <- function(df, min_nr_firms_indreg, min_nr_regions_ind, min_nr_ind_reg, region_col, industry_col)
+{
+  coagg_input <- subset(df,
+                        (nr_firms_indreg >= min_nr_firms_indreg) &
+                          (nr_regions_ind >= min_nr_regions_ind) &
+                          (nr_ind_reg >= min_nr_ind_reg))
+  
+  # constructing coagglomeration table
+  indreg_mat <- create_indreg_matrix(coagg_input, region_col, industry_col)
+  EGK_mat <- EGK_coagglomeration(indreg_mat)
+  coagg_table <- Melt(EGK_mat) %>% data.table()
+  colnames(coagg_table) <- c("ind1", "ind2", "coagglomeration")
+  
+  # remove self loops and make it undirected
+  coagg_table$ind1 <- as.character(coagg_table$ind1)
+  coagg_table$ind2 <- as.character(coagg_table$ind2)
+  coagg_table <- subset(coagg_table, ind1 < ind2)
+  return(coagg_table)
+}
+
+
 
 
 # functions to normalize variables
