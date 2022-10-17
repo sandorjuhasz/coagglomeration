@@ -5,7 +5,8 @@ output: html_notebook
 
 developed by sandorjuhasz
 
-```{r, results=FALSE, message=FALSE}
+```{r}
+# results=FALSE, message=FALSE
 source("../scripts/function_collection.R")
 library(data.table)
 library(dplyr)
@@ -30,6 +31,7 @@ tr_df <- fread("../data/industry_industry_table_nace3d.csv", sep=";")
 colors <- c("#e9c46a", "#264653")
 region_col <- "jaras"
 industry_col <- "nace3d"
+indreg_grouper <- c(industry_col, region_col)
 
 ```
 
@@ -64,14 +66,14 @@ cdf <- merge(
 
 # add industry, region and industry-region level attributes for future filters
 cdf <- cdf %>%
-  group_by(nace3d, jaras) %>%
+  group_by_at(indreg_grouper) %>%
   mutate(nr_firms_indreg = n_distinct(oo_cegj_sz),
          total_emp_indreg = sum(emp)) %>%
-  group_by(nace3d) %>%
+  group_by_at(industry_col) %>%
   mutate(nr_firms_ind = n_distinct(oo_cegj_sz),
          total_emp_ind = sum(emp),
          nr_regions_ind = n_distinct(jaras)) %>%
-  group_by(jaras) %>%
+  group_by_at(region_col) %>%
   mutate(nr_firms_reg = n_distinct(oo_cegj_sz),
          total_emp_reg = sum(emp),
          nr_ind_reg  = n_distinct(nace3d)) %>%
@@ -145,10 +147,9 @@ arrange(coagg_table, desc(coagglomeration))
 ```
 
 ```{r}
-cdf
+# EON service center w/ 1000+ employee
+subset(coagg_input, nace3d == 822)
 ```
-
-
 
 
 
@@ -169,24 +170,98 @@ idf <- merge(
   all.y = FALSE
 )
 
+idf$log10_trans <- log10(idf$nr_trans)
+idf$log10_trans[is.infinite(idf$log10_trans)] <- 0
+idf$log10_trans[is.na(idf$log10_trans)] <- 0
+
 ```
 
 
 ```{r}
 limited_idf <- subset(idf, nr_trans >= 5)
 
-ggplot(limited_idf, aes(x=coagglomeration, y=nr_trans)) +
+sc1 <- ggplot(idf, aes(x=coagglomeration, y=log10_trans)) +
   geom_point(size=5, color=colors[1], alpha=0.8) +
   #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
   xlab("Coagglomeration") +
-  ylab("Number of transactions") +
+  ylab("Transactions (log)") +
   #ylim(0, 1800) +
   #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   theme_cowplot(12) +
   theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+
+sc2 <- ggplot(limited_idf, aes(x=coagglomeration, y=log10_trans)) +
+  geom_point(size=5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  xlab("Coagglomeration") +
+  ylab("Transactions (min 5) (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+
+(sc1 + sc2)
+
+print(cor(idf$coagglomeration, idf$log10_trans))
+print(cor(limited_idf$coagglomeration, limited_idf$log10_trans))
 ```
 
 
-Skill relatednesss -- ADD
+**Skill relatednesss -- ADD**
+
+
+
+
+**MNEs -- ADD**
+
+Following Bisztray et al. 2022 WP -- MNEs should be\
+*10% foreign share*\
+*min 500 employees*
+
+
+OPTEN only have information on actual owners -- no foreign capital share\
+*10% of all owners are foreigners*
+
+
+```{r}
+# owner data from OPTEN
+ownerdata <- fread("../data/opten-dataset/mta_tulaj.csv", encoding='Latin-1')
+
+# owners are foreign firms
+foreign_owners <- ownerdata %>%
+  subset((ceg_orsz != "") & (ceg_orsz != "HU")) %>%
+  select(oo_cegj_sz, ceg_orsz, ceg_varos)
+  data.table()
+
+# MNE dataframe
+mne_df <- subset(cdf, emp >= 500)
+mne_df <- merge(
+  mne_df,
+  foreign_owners,
+  by = "oo_cegj_sz",
+  all.x = TRUE,
+  all.y = FALSE
+)
+mne_df <- subset(mne_df, is.na(ceg_orsz) ==0)
+```
+
+
+```{r}
+# country distribution
+country_distr <- mne_df %>%
+  group_by(ceg_orsz) %>%
+  summarise(nr_firms = n_distinct(oo_cegj_sz)) %>%
+  data.table()
+
+ggplot(country_distr, aes(x=ceg_orsz, y=nr_firms)) + 
+  geom_bar(stat = "identity", color="black", fill=colors[2]) +
+  xlab("Industries (2-digit NACE codes)") +
+  ylab("Number of foreign firms") +
+  #xlim(0, 105) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=25))
+
+```
 
