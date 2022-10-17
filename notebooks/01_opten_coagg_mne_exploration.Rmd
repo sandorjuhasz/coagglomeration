@@ -5,6 +5,8 @@ output: html_notebook
 
 developed by sandorjuhasz
 
+### coagglomeration
+
 ```{r}
 # results=FALSE, message=FALSE
 source("../scripts/function_collection.R")
@@ -55,7 +57,7 @@ cdf <- firm_info %>%
   dplyr::rename(emp = letszam_besz18) %>%
   data.table()
 
-# join location info
+# join location infossssssssssssss
 cdf <- merge(
   cdf,
   unique(select(geo_data, irsz, jaras, megye)),
@@ -92,21 +94,15 @@ check plants table, hopefully we can filter out firms with 100+ plants
 min 10 firms per industry-region -- AND -- min 2 regions per industry -- AND -- min 2 industries per region
 
 
+
 ```{r}
-# introduce filters
-coagg_input <- subset(cdf, (nr_firms_indreg >= 10) & (nr_regions_ind >= 2) & (nr_ind_reg >= 2))
-
-# constructing coagglomeration table
-indreg_mat <- create_indreg_matrix(coagg_input, region_col, industry_col)
-EGK_mat <- EGK_coagglomeration(indreg_mat)
-coagg_table <- Melt(EGK_mat) %>% data.table()
-colnames(coagg_table) <- c("ind1", "ind2", "coagglomeration")
-
-# remove self loops and make it undirected
-coagg_table$ind1 <- as.character(coagg_table$ind1)
-coagg_table$ind2 <- as.character(coagg_table$ind2)
-coagg_table <- subset(coagg_table, ind1 < ind2)
-
+# coagglomeration table using filters
+coagg_table <- construct_coagglomeration_table(cdf,
+                                min_nr_firms_indreg = 10,
+                                min_nr_regions_ind = 2,
+                                min_nr_ind_reg = 2,
+                                region_col,
+                                industry_col)
 ```
 
 
@@ -147,13 +143,13 @@ arrange(coagg_table, desc(coagglomeration))
 ```
 
 ```{r}
-# EON service center w/ 1000+ employee
-subset(coagg_input, nace3d == 822)
+# EON service center w/ 1000+ employee -- 822 nace3d
+# 
 ```
 
 
 
-**transaction data**
+### transaction data
 
 
 ```{r}
@@ -209,12 +205,11 @@ print(cor(limited_idf$coagglomeration, limited_idf$log10_trans))
 ```
 
 
-**Skill relatednesss -- ADD**
+### skill relatedness data
 
 
 
-
-**MNEs -- ADD**
+### MNEs
 
 Following Bisztray et al. 2022 WP -- MNEs should be\
 *10% foreign share*\
@@ -222,46 +217,116 @@ Following Bisztray et al. 2022 WP -- MNEs should be\
 
 
 OPTEN only have information on actual owners -- no foreign capital share\
-*10% of all owners are foreigners*
+*min 200 employees* \
+*home country of the owner company*
 
 
 ```{r}
+# MNE limit
+mne_limit <- 100
+
 # owner data from OPTEN
 ownerdata <- fread("../data/opten-dataset/mta_tulaj.csv", encoding='Latin-1')
 
 # owners are foreign firms
-foreign_owners <- ownerdata %>%
+foreign_firm_owners <- ownerdata %>%
   subset((ceg_orsz != "") & (ceg_orsz != "HU")) %>%
-  select(oo_cegj_sz, ceg_orsz, ceg_varos)
-  data.table()
+  dplyr::select(oo_cegj_sz, ceg_orsz, ceg_varos) %>%
+  data.table() %>%
+  unique() %>%
+  rename(country = ceg_orsz, city = ceg_varos)
+
+
+# owners are foreign people -- NOT finished
+foreign_person_owners <- ownerdata %>%
+  subset((szemely_orsz != "") & (szemely_orsz != "HU")) %>%
+  dplyr::select(oo_cegj_sz, szemely_orsz, szemely_varos) %>%
+  data.table() %>%
+  unique() %>%
+  rename(country = szemely_orsz, city = szemely_varos)
+
+foreign_table <- unique(rbind(foreign_firm_owners, foreign_person_owners))
+
 
 # MNE dataframe
-mne_df <- subset(cdf, emp >= 500)
+mne_df <- subset(cdf, emp >= 5)
+
 mne_df <- merge(
   mne_df,
-  foreign_owners,
+  foreign_table,
   by = "oo_cegj_sz",
   all.x = TRUE,
   all.y = FALSE
 )
-mne_df <- subset(mne_df, is.na(ceg_orsz) ==0)
+mne_df <- subset(mne_df, is.na(country) ==0)
+mne_limited <- subset(mne_df, emp >= mne_limit)
+
+```
+
+```{r}
+# plot modifications
+mne_df$log10_emp <- log10(mne_df$emp)
+
+# size of foreign firms
+ggplot(mne_df,
+  aes(x = log10_emp)) +
+  xlab("Employment (log10)") +
+  ylab("Frequency") +
+  #xlim(0, 1500) +
+  #ylim(0, 400) +
+  geom_histogram(bins=30, color="black", fill=colors[1]) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
+
 ```
 
 
 ```{r}
 # country distribution
-country_distr <- mne_df %>%
-  group_by(ceg_orsz) %>%
+country_distr <- mne_limited %>%
+  group_by(country) %>%
   summarise(nr_firms = n_distinct(oo_cegj_sz)) %>%
   data.table()
 
-ggplot(country_distr, aes(x=ceg_orsz, y=nr_firms)) + 
+ggplot(country_distr, aes(x=country, y=nr_firms)) + 
   geom_bar(stat = "identity", color="black", fill=colors[2]) +
-  xlab("Industries (2-digit NACE codes)") +
-  ylab("Number of foreign firms") +
+  xlab(paste0("Country of origin (for ", mne_limit, "+ employee firms)")) +
+  ylab("Number of foreign owned firms") +
   #xlim(0, 105) +
   theme_cowplot(12) +
-  theme(axis.text = element_text(size=10), axis.title=element_text(size=25))
+  theme(axis.text = element_text(size=6), axis.title=element_text(size=20))
 
 ```
+
+
+```{r}
+# coagglomeration MNEs
+mne_coagg_table <- construct_coagglomeration_table(mne_limited,
+                                min_nr_firms_indreg = 10,
+                                min_nr_regions_ind = 2,
+                                min_nr_ind_reg = 2,
+                                region_col,
+                                industry_col)
+```
+
+```{r}
+# coagglomeration plots
+p1 <- ggplot(mne_coagg_table, aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+
+p2 <- ggplot(mne_coagg_table, aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=20))
+
+(p1 + p2)
+```
+
 
