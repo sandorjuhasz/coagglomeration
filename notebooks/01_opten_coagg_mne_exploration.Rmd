@@ -40,14 +40,14 @@ indreg_grouper <- c(industry_col, region_col)
 
 **Less than 5 digit NACE codes seem to be incorrect**
 
-made corrections by checking 'fotev_nev' and 'fotev_kod'
+made corrections after manually checking 'fotev_nev' and 'fotev_kod'
 
 ```{r}
 # generate 3-digit NACE codes -- NO leading zeros and many NAs
 firm_info <- subset(firm_info, is.na(fotev_kod)==0)
 firm_info$nace3d <- ifelse(nchar(firm_info$fotev_kod)==5,
-                           substr(firm_info$fotev_kod, 1, 3),
-                           substr(firm_info$fotev_kod, 1, 2))
+                           as.numeric(substr(firm_info$fotev_kod, 1, 3)),
+                           as.numeric(substr(firm_info$fotev_kod, 1, 2)))
 
 # companies dataframe with key columns
 cdf <- firm_info %>%
@@ -57,7 +57,7 @@ cdf <- firm_info %>%
   dplyr::rename(emp = letszam_besz18) %>%
   data.table()
 
-# join location infossssssssssssss
+# join location infos
 cdf <- merge(
   cdf,
   unique(select(geo_data, irsz, jaras, megye)),
@@ -328,5 +328,20 @@ p2 <- ggplot(mne_coagg_table, aes(x = coagglomeration)) +
 
 (p1 + p2)
 ```
+
+
+Manufacturing focus -- NACE C10 -- NACE C32.9.9
+
+```{r}
+manu_df <- subset(cdf, (nace3d > 101))
+
+firm_info$nace3d_char <- as.numeric(firm_info$nace3d)
+
+
+```
+
+
+
+
 
 
