@@ -52,7 +52,7 @@ firm_info$nace3d <- ifelse(nchar(firm_info$fotev_kod)==5,
 # companies dataframe with key columns
 cdf <- firm_info %>%
   select(oo_cegj_sz, hely, irsz, nace3d, letszam_besz18) %>%
-  subset(is.na(irsz) == 0 & is.na(nace3d) == 0) %>%
+  subset(is.na(irsz) == 0 & is.na(nace3d) == 0 & nace3d > 9) %>%
   subset(letszam_besz18 >= 2) %>%
   dplyr::rename(emp = letszam_besz18) %>%
   data.table()
@@ -333,7 +333,9 @@ p2 <- ggplot(mne_coagg_table, aes(x = coagglomeration)) +
 Manufacturing focus -- NACE C10 -- NACE C32.9.9
 
 ```{r}
-manu_df <- subset(cdf, (nace3d > 101))
+
+cdf$nace3d <- as.numeric(cdf$nace3d)
+manu_df <- subset(cdf, (nace3d > 100) & (nace3d < 330))
 
 firm_info$nace3d_char <- as.numeric(firm_info$nace3d)
 
