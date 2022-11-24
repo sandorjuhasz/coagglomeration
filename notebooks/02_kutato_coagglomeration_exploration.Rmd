@@ -1,0 +1,36 @@
+---
+title: "coagglomeration -- OC 2020-NOV version"
+output: html_notebook
+---
+
+developed by sandorjuhasz
+
+### coagglomeration
+
+```{r}
+# results=FALSE, message=FALSE
+source("../scripts/function_collection.R")
+library(data.table)
+library(dplyr)
+options(dplyr.summarise.inform = FALSE)
+library(mefa4)
+library(ggplot2)
+library(ggraph)
+library(patchwork)
+library(cowplot)
+
+# choose aggregation
+region <- "megye"
+industry <- "nace3d"
+
+# coagglomeration -- reconstructed data
+coagg_df <- fread(paste0("../data/oc_2022_november/coagglomeration_manufacturing_", industry, "_", region, "_totalemp.csv"), encoding='Latin-1')
+
+```
+
+
+
+
+
+
+
