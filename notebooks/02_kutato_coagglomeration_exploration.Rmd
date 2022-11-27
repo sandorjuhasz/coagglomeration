@@ -1,5 +1,5 @@
 ---
-title: "coagglomeration -- OC 2020-NOV version"
+title: "coagglomeration -- OC 2022-NOV version"
 output: html_notebook
 ---
 
@@ -7,9 +7,21 @@ developed by sandorjuhasz
 
 ### coagglomeration
 
+3 distinct version prepared <br>
+-- all 3-digit NACE industries <br>
+-- only manufacturing 3-digit NACE industries <br>
+-- only MNEs in all 3-digit NACE industries <br>
+
+all 3 distinct versions are prepared for 3 region types <br>
+-- megye (NUTS 3) <br>
+-- jaras (LAU 1) <br>
+-- urban agglomeration (20) <br>
+
+
 ```{r}
 # results=FALSE, message=FALSE
-source("../scripts/function_collection.R")
+
+source("../scripts/02_coagglomeration_exploration_functions.R")
 library(data.table)
 library(dplyr)
 options(dplyr.summarise.inform = FALSE)
