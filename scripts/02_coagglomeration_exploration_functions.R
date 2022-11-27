@@ -33,7 +33,7 @@ z_score <-function(column){
 # ggplot axis text size preset
 custom_theme <- function(...)
 {
-  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=20))
 }
 
 

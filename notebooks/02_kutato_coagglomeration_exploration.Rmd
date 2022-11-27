@@ -1,5 +1,5 @@
 ---
-title: "coagglomeration -- OC 2022-NOV version"
+title: "coagglomeration -- OC 2022-NOV"
 output: html_notebook
 ---
 
@@ -18,9 +18,7 @@ all 3 distinct versions are prepared for 3 region types <br>
 -- urban agglomeration (20) <br>
 
 
-```{r}
-# results=FALSE, message=FALSE
-
+```{r, results=FALSE, message=FALSE}
 source("../scripts/02_coagglomeration_exploration_functions.R")
 library(data.table)
 library(dplyr)
@@ -31,18 +29,119 @@ library(ggraph)
 library(patchwork)
 library(cowplot)
 
-# choose aggregation
-region <- "megye"
+# parameters
+region <- c("megye", "agglom", "jaras")
 industry <- "nace3d"
+colors <- c("#e9c46a", "#264653")
+```
 
-# coagglomeration -- reconstructed data
-coagg_df <- fread(paste0("../data/oc_2022_november/coagglomeration_manufacturing_", industry, "_", region, "_totalemp.csv"), encoding='Latin-1')
+```{r}
+# list of different data versions
+coagg_data <- list()
+for(v in 1:length(region))
+{
+  coagg_data[[v]] <- fread(
+    paste0(
+      "../data/oc_2022_november/coagglomeration_manufacturing_",
+      industry,
+      "_",
+      region[v],
+      "_totalemp.csv"
+    )
+  )
+}
+
+# plot construction
+p1 <- ggplot(data.frame(coagg_data[[1]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[1]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p2 <- ggplot(data.frame(coagg_data[[2]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p3 <- ggplot(data.frame(coagg_data[[3]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+(p1 + p2 + p3)
+```
+
+<br>
+megye or urban agglomeration seems to be a better choice..<br>
+<br>
+
+### transactions
+
+```{r}
+# list of different data versions
+tr_data <- list()
+for(v in 1:length(region))
+{
+  tr_data[[v]] <- fread(
+    paste0(
+      "../data/oc_2022_november/transactions_indreg_",
+      industry,
+      "_",
+      region[v],
+      ".csv"
+    )
+  )
+}
+
+# aggregate to industry-industry level
+
+# distribution plots
 
 ```
 
 
+```{r}
+# skill relatedness
+```
 
 
+```{r}
+# scatter plots
+```
 
 
+```{r}
+# replication - univar regressions
+```
+
+
+```{r}
+# replication - full model
+```
+
+
+```{r}
+# only manufacturing
+```
+
+
+```{r}
+# only MNEs
+```
+
+
+```{r}
+# growth -- industry-region level
+```
 
