@@ -7,8 +7,11 @@ library(data.table)
 library(dplyr)
 
 
-# 
-
+# aggregate industry-region level transaction data to industry-industry level
+aggregate_transaction_data <- function(tr_indreg_data)
+{
+  
+}
 
 
 # functions to normalize variables
@@ -25,8 +28,6 @@ z_score <-function(column){
   new_var <- (column - mean(column)) / sd(column)
   return(new_var)
 } 
-
-
 
 
 
