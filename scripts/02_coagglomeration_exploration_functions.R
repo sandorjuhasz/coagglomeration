@@ -8,10 +8,17 @@ library(dplyr)
 
 
 # aggregate industry-region level transaction data to industry-industry level
-aggregate_transaction_data <- function(tr_indreg_data)
+ind_ind_aggregation <- function(el, group_cols, weight_col, weight_min)
 {
+  indind_el <- el %>%
+    dplyr::filter(weight_col >= weight_min) %>%
+    group_by_at(group_cols) %>%
+    summarise_at(vars(weight_col), sum) %>%
+    data.table()
   
+  return(indind_el)
 }
+
 
 
 # functions to normalize variables

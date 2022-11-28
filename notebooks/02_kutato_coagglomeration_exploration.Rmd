@@ -105,6 +105,18 @@ for(v in 1:length(region))
 }
 
 # aggregate to industry-industry level
+group_cols <- c("nace3d1", "nace3d2")
+indind_tr <- list()
+for(t in 1:length(tr_data)){
+  indind_tr[[t]] <- ind_ind_aggregation(tr_data[[t]], group_cols, weight_col = "tb_count", weight_min = 1)
+}
+
+
+
+
+
+
+
 
 # distribution plots
 
