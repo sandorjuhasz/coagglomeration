@@ -36,14 +36,14 @@ industry <- "nace3d"
 colors <- c("#e9c46a", "#264653")
 ```
 
-```{r}
+```{r, echo=FALSE}
 # list of different data versions
 coagg_data <- list()
 for(v in 1:length(region))
 {
   coagg_data[[v]] <- fread(
     paste0(
-      "../data/oc_2022_november/coagglomeration_manufacturing_",
+      "../data/oc_2022_november/coagglomeration_",
       industry,
       "_",
       region[v],
@@ -303,20 +303,266 @@ model_save(indind_tables[[3]], file_name = paste0("../outputs/baseline_coagglom_
 ```
 
 
-TERRIBLE R2s for all levels <br>
+TERRIBLE R2s for all levels -- megye and jaras seems to be the better choice in this setting <br>
+<br>
+<br>
+__megye__ version 
+<br>
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/baseline_coagglom_models_megye.html")
+```
+
+<br>
+<br>
+__jaras__ version
+<br>
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/baseline_coagglom_models_jaras.html")
+```
+
+<br>
+<br>
+__agglom__ version
+<br>
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/baseline_coagglom_models_agglom.html")
+```
+
+
+
+<br>
+<br>
+<br>
+### ONLY MANUFACTURING version
+<br>
+<br>
+
+```{r, echo=FALSE}
+# list of different data versions
+coagg_data <- list()
+for(v in 1:length(region))
+{
+  coagg_data[[v]] <- fread(
+    paste0(
+      "../data/oc_2022_november/coagglomeration_manufacturing_",
+      industry,
+      "_",
+      region[v],
+      "_totalemp.csv"
+    )
+  )
+}
+
+# distribution plots
+p1 <- ggplot(data.frame(coagg_data[[1]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[1])) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p2 <- ggplot(data.frame(coagg_data[[2]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p3 <- ggplot(data.frame(coagg_data[[3]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+(p1 + p2 + p3)
+```
+
+
+
+```{r, echo=FAlSE}
+# combine different coagglomeration - transactions - skill relatedness
+indind_tables <- list()
+for(v in 1:length(region))
+{
+  # ADD transaction
+  indind_tables[[v]] <- merge(
+      coagg_data[[v]],
+      indind_tr[[v]],
+      by.x = c("ind1", "ind2"),
+      by.y = c("nace3d1", "nace3d2"),
+      all.x = TRUE,
+      all.y = FALSE
+  )
+  
+  # log10 number of buy transactions 
+  indind_tables[[v]]$tb_count_log <- ifelse(indind_tables[[v]]$tb_count > 1, round(log10(indind_tables[[v]]$tb_count), 3), 0)
+  indind_tables[[v]]$tb_count_log[is.na(indind_tables[[v]]$tb_count_log)==1] <- 0
+  
+  # ADD skill relatedness
+  indind_tables[[v]] <- merge(
+    indind_tables[[v]],
+    sr_df,
+    by.x = c("ind1", "ind2"),
+    by.y = c("nace3d1", "nace3d2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  indind_tables[[v]]$sr_avg[is.na(indind_tables[[v]]$sr_avg)==1] <- 0
+  indind_tables[[v]]$rel01[is.na(indind_tables[[v]]$rel01)==1] <- 0
+  
+  # nr firms for control
+  indind_tables[[v]]$nr_firms1_log <- log10(indind_tables[[v]]$nr_firms1)
+  indind_tables[[v]]$nr_firms2_log <- log10(indind_tables[[v]]$nr_firms2)
+}
+```
+
+```{r}
+# scatter plots for different versions
+p1 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=tb_count_log)) +
+  geom_point(size=2.5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[1]) +
+  xlab("Coagglomeration") +
+  ylab("Nr (buy) transactions (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+#tr_above1 <- subset(co_df, nr_trans > 5)
+p2 <- ggplot(indind_tables[[2]], aes(x=coagglomeration, y=tb_count_log)) +
+  geom_point(size=2.5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Nr (buy) transactions (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+p3 <- ggplot(indind_tables[[3]], aes(x=coagglomeration, y=tb_count_log)) +
+  geom_point(size=2.5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Nr (buy) transactions (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+
+p4 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=sr_avg)) +
+  geom_point(size=2.5, color=colors[2], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[1]) +
+  xlab("Coagglomeration") +
+  ylab("Skill relatedness") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+
+#tr_above1 <- subset(co_df, nr_trans > 5)
+p5 <- ggplot(indind_tables[[2]], aes(x=coagglomeration, y=sr_avg)) +
+  geom_point(size=2.5, color=colors[2], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Skill relatedness") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+p6 <- ggplot(indind_tables[[3]], aes(x=coagglomeration, y=sr_avg)) +
+  geom_point(size=2.5, color=colors[2], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Skill relatedness") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+
+plot_grid(
+  p1, p2, p3,
+  p4, p5, p6,
+  #labels = "AUTO",
+  ncol = 3
+)
+```
+
+
+```{r, echo=FALSE, results="hide"}
+
+model_save <- function(df, file_name)
+{
+  m1 <- lm(coagglomeration ~ tb_count_log, data = df)
+  m2 <- lm(coagglomeration ~ sr_avg, data = df)
+  m3 <- lm(coagglomeration ~ tb_count_log + sr_avg, data = df)
+  m4 <- lm(coagglomeration ~ tb_count_log + sr_avg + nr_firms1_log + nr_firms2_log, data = df)
+
+  stargazer(m1, m2, m3, m4, out=file_name)
+}
+
+model_save(indind_tables[[1]], file_name = paste0("../outputs/baseline_coagglom_manufacturing_models_", region[1], ".html"))
+model_save(indind_tables[[2]], file_name = paste0("../outputs/baseline_coagglom_manufacturing_models_", region[2], ".html"))
+model_save(indind_tables[[3]], file_name = paste0("../outputs/baseline_coagglom_manufacturing_models_", region[3], ".html"))
+
+```
+
+
+TERRIBLE R2s for all levels -- megye and jaras seems to be the better choice in this setting <br>
+<br>
+<br>
+__megye manufacturing ONLY__ version 
+<br>
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/baseline_coagglom_manufacturing_models_megye.html")
+```
+
+
+<br>
+<br>
+__jaras manufacturing ONLY__ version
+<br>
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/baseline_coagglom_manufacturing_models_jaras.html")
+```
+
+<br>
+<br>
+__agglom manufacturing ONLY__ version
+<br>
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/baseline_coagglom_manufacturing_models_agglom.html")
+```
+
+
+
+<br>
+<br>
+<br>
+### MNEs
+<br>
 <br>
 
 
 
-```{r}
-htmltools::includeHTML("../outputs/univar_models.html")
-```
 
-
-
-```{r}
-# only manufacturing
-```
 
 
 ```{r}
