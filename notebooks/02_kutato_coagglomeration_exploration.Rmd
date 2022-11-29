@@ -333,12 +333,10 @@ htmltools::includeHTML("../outputs/baseline_coagglom_models_agglom.html")
 
 
 
-<br>
-<br>
-<br>
+
 ### ONLY MANUFACTURING version
-<br>
-<br>
+
+
 
 ```{r, echo=FALSE}
 # list of different data versions
@@ -559,11 +557,6 @@ htmltools::includeHTML("../outputs/baseline_coagglom_manufacturing_models_agglom
 ### MNEs
 <br>
 <br>
-
-
-
-
-
 
 ```{r}
 # only MNEs
