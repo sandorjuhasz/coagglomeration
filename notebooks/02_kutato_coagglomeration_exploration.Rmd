@@ -51,7 +51,7 @@ for(v in 1:length(region))
   )
 }
 
-# plot construction
+# distribution plots
 p1 <- ggplot(data.frame(coagg_data[[1]]), aes(x = coagglomeration)) +
   geom_histogram(bins=30, , color="black", fill=colors[2]) +
   ggtitle(region[1]) +
@@ -88,6 +88,10 @@ megye or urban agglomeration seems to be a better choice..<br>
 
 ### transactions
 
+for simplification -- at this point -- I only use A -- bought from -- B ties <br>
+<br>
+agglom(erations) do not cover the country fully -- transactions are only between industries inside or in between urban agglomeration
+
 ```{r}
 # list of different data versions
 tr_data <- list()
@@ -111,20 +115,173 @@ for(t in 1:length(tr_data)){
   indind_tr[[t]] <- ind_ind_aggregation(tr_data[[t]], group_cols, weight_col = "tb_count", weight_min = 1)
 }
 
+# distribution plots
+p1 <- ggplot(data.frame(indind_tr[[1]]), aes(x = tb_count)) +
+  geom_histogram(bins=30, , color="black", fill=colors[1]) +
+  ggtitle(region[1]) +
+  xlab("Nr transactions (buy)") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p2 <- ggplot(data.frame(indind_tr[[2]]), aes(x = tb_count)) +
+  geom_histogram(bins=30, , color="black", fill=colors[1]) +
+  ggtitle(region[2]) +
+  xlab("Nr transactions (buy)") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p3 <- ggplot(data.frame(indind_tr[[3]]), aes(x = tb_count)) +
+  geom_histogram(bins=30, , color="black", fill=colors[1]) +
+  ggtitle(region[3]) +
+  xlab("Nr transactions (buy)") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+(p1 + p2 + p3)
+```
 
 
+### skill relatedness
+
+as I still dont have the raw data on labor flow between industry regions, I use skill relatedness
 
 
-
-
+```{r}
+# transform Lorincz et al skill relatedness data to 3-digit average values
+sr <- fread("../data/relatedness/SR_avg.csv")
+sr_df <- sr_transformation(sr)
 
 # distribution plots
+ggplot(data.frame(sr_df), aes(x = sr_avg)) +
+  geom_histogram(bins=30, , color="black", fill=colors[1]) +
+  xlab("Skill relatedness") +
+  ylab("Frequency") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
 
 ```
 
 
+
 ```{r}
-# skill relatedness
+# combine different coagglomeration - transactions - skill relatedness
+indind_tables <- list()
+for(v in 1:length(region))
+{
+  # ADD transaction
+  indind_tables[[v]] <- merge(
+      coagg_data[[v]],
+      indind_tr[[v]],
+      by.x = c("ind1", "ind2"),
+      by.y = c("nace3d1", "nace3d2"),
+      all.x = TRUE,
+      all.y = FALSE
+  )
+  
+  # log10 number of buy transactions 
+  indind_tables[[v]]$tb_count_log <- ifelse(indind_tables[[v]]$tb_count > 1, round(log10(indind_tables[[v]]$tb_count), 3), 0)
+  indind_tables[[v]]$tb_count_log[is.na(indind_tables[[v]]$tb_count_log)==1] <- 0
+  
+  # ADD skill relatedness
+  indind_tables[[v]] <- merge(
+    indind_tables[[v]],
+    sr_df,
+    by.x = c("ind1", "ind2"),
+    by.y = c("nace3d1", "nace3d2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  indind_tables[[v]]$sr_avg[is.na(indind_tables[[v]]$sr_avg)==1] <- 0
+  indind_tables[[v]]$rel01[is.na(indind_tables[[v]]$rel01)==1] <- 0
+}
+```
+
+```{r}
+# scatter plots for different versions
+p1 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=tb_count_log)) +
+  geom_point(size=5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[1]) +
+  xlab("Coagglomeration") +
+  ylab("Nr (buy) transactions (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+#tr_above1 <- subset(co_df, nr_trans > 5)
+p2 <- ggplot(indind_tables[[2]], aes(x=coagglomeration, y=tb_count_log)) +
+  geom_point(size=5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Nr (buy) transactions (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+p3 <- ggplot(indind_tables[[3]], aes(x=coagglomeration, y=tb_count_log)) +
+  geom_point(size=5, color=colors[1], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Nr (buy) transactions (log)") +
+  #ylim(0, 1800) +
+  #scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+
+p4 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=sr_avg)) +
+  geom_point(size=5, color=colors[2], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[1]) +
+  xlab("Coagglomeration") +
+  ylab("Skill relatedness") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+
+#tr_above1 <- subset(co_df, nr_trans > 5)
+p5 <- ggplot(indind_tables[[2]], aes(x=coagglomeration, y=sr_avg)) +
+  geom_point(size=5, color=colors[2], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Skill relatedness") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+p6 <- ggplot(indind_tables[[3]], aes(x=coagglomeration, y=sr_avg)) +
+  geom_point(size=5, color=colors[2], alpha=0.8) +
+  #geom_smooth(method=lm, se=TRUE, linetype="dashed", color="black") +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Skill relatedness") +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=14))
+
+
+plot_grid(
+  p1, p2, p3,
+  p4, p5, p6,
+  #labels = "AUTO",
+  ncol = 3
+)
+```
+
+
+```{r}
+summary(lm(coagglomeration ~ tb_count_log + sr_avg, data = indind_tables[[2]]))
+
 ```
 
 
