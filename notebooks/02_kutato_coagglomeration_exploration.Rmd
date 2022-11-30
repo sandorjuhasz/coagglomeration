@@ -51,7 +51,7 @@ for simplification -- at this point -- I only use A -- bought from -- B ties <br
 <br>
 agglom(erations) do not cover the country fully -- transactions are only between industries inside or in between urban agglomeration
 
-```{r, warning=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 # list of different data versions
 tr_data <- list()
 for(v in 1:length(region))
@@ -113,7 +113,7 @@ p3 <- ggplot(data.frame(indind_tr[[3]]), aes(x = tb_count)) +
 as I still dont have the raw data on labor flow between industry regions, I use skill relatedness
 
 
-```{r}
+```{r, echo=FALSE}
 # transform Lorincz et al skill relatedness data to 3-digit average values
 sr <- fread("../data/relatedness/SR_avg.csv")
 sr_df <- sr_transformation(sr)
@@ -219,7 +219,7 @@ for(v in 1:length(region))
 }
 ```
 
-```{r}
+```{r, echo=FALSE}
 # scatter plots for different versions
 p1 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=tb_count_log)) +
   geom_point(size=2.5, color=colors[1], alpha=0.8) +
@@ -436,7 +436,7 @@ for(v in 1:length(region))
 }
 ```
 
-```{r}
+```{r, echo=FALSE}
 # scatter plots for different versions
 p1 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=tb_count_log)) +
   geom_point(size=2.5, color=colors[1], alpha=0.8) +
@@ -570,7 +570,7 @@ htmltools::includeHTML("../outputs/baseline_coagglom_manufacturing_models_agglom
 
 
 
-```{r}
+```{r, echo=FALSE}
 # list of different data versions
 coagg_data <- list()
 for(v in 1:length(region))
@@ -657,7 +657,7 @@ for(v in 1:length(region))
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 # scatter plots for different versions
 p1 <- ggplot(indind_tables[[1]], aes(x=coagglomeration, y=tb_count_log)) +
   geom_point(size=1.5, color=colors[1], alpha=0.8) +
@@ -788,7 +788,7 @@ htmltools::includeHTML("../outputs/baseline_coagglom_mnes_models_jaras.html")
 ### network approach
 
 
-```{r}
+```{r, echo=FALSE}
 # networks of industry regions
 tr_data[[1]]$indreg1 <- paste0(tr_data[[1]]$nace3d1, "-", tr_data[[1]]$megye_kod1)
 tr_data[[1]]$indreg2 <- paste0(tr_data[[1]]$nace3d2, "-", tr_data[[1]]$megye_kod2)
@@ -812,24 +812,300 @@ for(g in 1:length(region))
   colnames(tr_central[[g]]) <- c("indreg", "degree", "nr_buyer_ties", "nr_supplier_ties")
 }
 
+```
 
+
+```{r, echo=FALSE}
+# networks of industry regions
+tr_data[[1]]$indreg1 <- paste0(tr_data[[1]]$nace3d1, "-", tr_data[[1]]$megye_kod1)
+tr_data[[1]]$indreg2 <- paste0(tr_data[[1]]$nace3d2, "-", tr_data[[1]]$megye_kod2)
+
+tr_data[[2]]$indreg1 <- paste0(tr_data[[2]]$nace3d1, "-", tr_data[[2]]$jaras_kod1)
+tr_data[[2]]$indreg2 <- paste0(tr_data[[2]]$nace3d2, "-", tr_data[[2]]$jaras_kod2)
+
+tr_data[[3]]$indreg1 <- paste0(tr_data[[3]]$nace3d1, "-", tr_data[[3]]$agglom_id1)
+tr_data[[3]]$indreg2 <- paste0(tr_data[[3]]$nace3d2, "-", tr_data[[3]]$agglom_id2)
+
+
+tr_graph <- list()
+tr_central <- list()
+for(g in 1:length(region))
+{
+  tr_graph[[g]] <- create_transaction_network(tr_data[[g]], weight = "tb_count")
+  tr_central[[g]] <- data.table(V(tr_graph[[g]])$name,
+                                degree(tr_graph[[g]]),
+                                degree(tr_graph[[g]], mode = "in"),
+                                degree(tr_graph[[g]], mode = "out"))
+  colnames(tr_central[[g]]) <- c("indreg", "degree", "nr_buyer_ties", "nr_supplier_ties")
+}
+
+```
+
+
+
+<br>
+<br>
+__megye transaction network__ 
+
+```{r}
+tr_graph[[1]]
+```
+
+
+```{r}
+tr_graph[[1]]
+```
+
+
+
+<br>
+<br>
+__jaras transaction network__ 
+
+```{r}
+tr_graph[[2]]
+```
+
+
+<br>
+<br>
+__agglom transaction network__ 
+
+```{r}
+tr_graph[[3]]
+```
+
+
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+# distribution plots
+p1 <- ggplot(data.frame(tr_central[[1]]), aes(x = degree)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[1])) +
+  xlab("Degree") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p2 <- ggplot(data.frame(tr_central[[2]]), aes(x = degree)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[2])) +
+  xlab("Degree") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p3 <- ggplot(data.frame(tr_central[[3]]), aes(x = degree)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[3])) +
+  xlab("Degree") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+
+p4 <- ggplot(data.frame(tr_central[[1]]), aes(x = nr_buyer_ties)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[1])) +
+  xlab("# buyer ties") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p5 <- ggplot(data.frame(tr_central[[2]]), aes(x = nr_buyer_ties)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[2])) +
+  xlab("# buyer ties") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p6 <- ggplot(data.frame(tr_central[[3]]), aes(x = nr_buyer_ties)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[3])) +
+  xlab("# buyer ties") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+
+
+p7 <- ggplot(data.frame(tr_central[[1]]), aes(x = nr_supplier_ties)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[1])) +
+  xlab("# supplier ties") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p8 <- ggplot(data.frame(tr_central[[2]]), aes(x = nr_supplier_ties)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[2])) +
+  xlab("# supplier ties") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p9 <- ggplot(data.frame(tr_central[[3]]), aes(x = nr_supplier_ties)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(paste0(region[3])) +
+  xlab("# supplier ties") +
+  ylab("Frequency") +
+  scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+plot_grid(
+  p1, p2, p3,
+  p4, p5, p6,
+  p7, p8, p9,
+  #labels = "AUTO",
+  ncol = 3
+)
+
+```
+<br>
+<br>
+<br>
+__local ties?__
+<br>
+<br>
+
+```{r, echo=FALSE}
+# growth models on industry region level -- baseline model
+gr_df <- fread(paste0("../data/oc_2022_november/indreg_2018_2020_", region[1], ".csv"))
+gr_df$indreg <- paste0(gr_df$ind, "-", gr_df$reg)
+
+
+# local ties
+local_connections <- tr_data[[1]] %>%
+  filter(megye_kod1 == megye_kod2 & nace3d1 != nace3d2) %>%
+  group_by(indreg1) %>%
+  summarise(local_suppliers = n_distinct(indreg2)) %>%
+  data.table()
+
+# local ties to RCA
+tr_data[[1]] <- merge(
+  tr_data[[1]],
+  select(gr_df, indreg, rca18),
+  by.x = "indreg1",
+  by.y = "indreg",
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+local_rca <- tr_data[[1]] %>%
+  filter(megye_kod1 == megye_kod2 & nace3d1 != nace3d2 & rca18 >= 1) %>%
+  group_by(indreg1) %>%
+  summarise(local_suppliers = n_distinct(indreg2)) %>%
+  data.table()
 
 ```
 
 
 ### growth models
 
-```{r}
-# growth models on industry region level -- baseline model
-gr_df <- fread(paste0("../data/oc_2022_november/indreg_2018_2020_", region[1], ".csv"))
+```{r, echo=FALSE}
+# prep df for growth regressions
+gr_df <- merge(
+  gr_df,
+  tr_central[[1]],
+  by = "indreg",
+  all.x = TRUE,
+  all.y = FALSE
+)
+gr_df <- merge(
+  gr_df,
+  local_connections,
+  by.x = "indreg",
+  by.y = "indreg1",
+  all.x = TRUE,
+  all.y = FALSE
+)
+gr_df <- merge(
+  gr_df,
+  local_rca,,
+  by.x = "indreg",
+  by.y = "indreg1",
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+
 gr_df$log_growth_rate <- log10(gr_df$total_emp20 / gr_df$total_emp18)
 gr_df$log_total_emp18 <- log10(gr_df$total_emp18)
 gr_df$log_nr_firms18 <- log10(gr_df$nr_firms18)
+gr_df$log_degree <- log10(gr_df$degree)
+gr_df$log_buyer_ties <- ifelse(gr_df$nr_buyer_ties > 0, log10(gr_df$nr_buyer_ties), 0)
+gr_df$log_supplier_ties <- ifelse(gr_df$nr_supplier_ties > 0, log10(gr_df$nr_supplier_ties), 0)
+gr_df$local_suppliers[is.na(gr_df$local_suppliers)==1] <- 0
+gr_df$log_local_suppliers <- ifelse(gr_df$local_suppliers > 0, log10(gr_df$local_suppliers), 0)
 
-summary(lm(log_growth_rate ~ rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df))
+#summary(lm(log_growth_rate ~ log_degree + rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df))
 
 ```
 
 
 
+```{r, echo=FALSE, warning=FALSE}
+gm1 <- lm(log_growth_rate ~ rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df)
+gm2 <- lm(log_growth_rate ~ log_degree + rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df)
+gm3 <- lm(log_growth_rate ~ log_buyer_ties + rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df)
+gm4 <- lm(log_growth_rate ~ log_supplier_ties + rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df)
+gm4 <- lm(log_growth_rate ~ log_local_suppliers + rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df)
 
+
+stargazer(gm1, gm2, gm3, gm4, out =  "../outputs/growth_models_megye.html")
+
+```
+
+```{r, echo=FALSE}
+htmltools::includeHTML("../outputs/growth_models_megye.html")
+```
+
+
+mnes
+skill relatedness ties
+ties to industries with RCA
+local ties ONLY
+
+
+
+
+
+
+### MNEs
+mne-local co-location
+local-local co-location
+mne-mne - local-local coagglomeration corr
+
+mne -- similar local -- with whom do they co-locate?
+
+for grwoth models
+industry FE
+region FE
+
+
+
+
+1) aspatial trade
+2) local trade
+3) local possibility
+
+ind, ind, trade
+ind, ind, colocation
+for all ind, ind for which 1, 2 are true --check local sourcing
+
+ind, ind
+ind, ind, region
+ind, ind, trade
