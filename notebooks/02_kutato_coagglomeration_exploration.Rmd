@@ -24,13 +24,15 @@ all 3 distinct versions are prepared for 3 region types <br>
 ![__agglom__](../figures/agglom_illustration.png)
 
 
-```{r, results=FALSE, message=FALSE}
+
+```{r, echo=FALSE, results=FALSE, message=FALSE}
 source("../scripts/02_coagglomeration_exploration_functions.R")
 library(data.table)
 library(dplyr)
 options(dplyr.summarise.inform = FALSE)
 library(mefa4)
 library(ggplot2)
+library(igraph)
 library(ggraph)
 library(patchwork)
 library(cowplot)
@@ -42,56 +44,6 @@ industry <- "nace3d"
 colors <- c("#e9c46a", "#264653")
 ```
 
-```{r, echo=FALSE}
-# list of different data versions
-coagg_data <- list()
-for(v in 1:length(region))
-{
-  coagg_data[[v]] <- fread(
-    paste0(
-      "../data/oc_2022_november/coagglomeration_",
-      industry,
-      "_",
-      region[v],
-      "_totalemp.csv"
-    )
-  )
-}
-
-# distribution plots
-p1 <- ggplot(data.frame(coagg_data[[1]]), aes(x = coagglomeration)) +
-  geom_histogram(bins=30, , color="black", fill=colors[2]) +
-  ggtitle(region[1]) +
-  xlab("Coagglomeration") +
-  ylab("Frequency") +
-  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  theme_cowplot(12) +
-  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
-
-p2 <- ggplot(data.frame(coagg_data[[2]]), aes(x = coagglomeration)) +
-  geom_histogram(bins=30, , color="black", fill=colors[2]) +
-  ggtitle(region[2]) +
-  xlab("Coagglomeration") +
-  ylab("Frequency") +
-  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  theme_cowplot(12) +
-  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
-
-p3 <- ggplot(data.frame(coagg_data[[3]]), aes(x = coagglomeration)) +
-  geom_histogram(bins=30, , color="black", fill=colors[2]) +
-  ggtitle(region[3]) +
-  xlab("Coagglomeration") +
-  ylab("Frequency") +
-  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  theme_cowplot(12) +
-  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
-
-(p1 + p2 + p3)
-```
-
-<br>
-megye or urban agglomeration seems to be a better choice..<br>
-<br>
 
 ### transactions
 
@@ -154,6 +106,8 @@ p3 <- ggplot(data.frame(indind_tr[[3]]), aes(x = tb_count)) +
 ```
 
 
+
+
 ### skill relatedness
 
 as I still dont have the raw data on labor flow between industry regions, I use skill relatedness
@@ -174,6 +128,58 @@ ggplot(data.frame(sr_df), aes(x = sr_avg)) +
 
 ```
 
+
+
+```{r, echo=FALSE}
+# list of different data versions
+coagg_data <- list()
+for(v in 1:length(region))
+{
+  coagg_data[[v]] <- fread(
+    paste0(
+      "../data/oc_2022_november/coagglomeration_",
+      industry,
+      "_",
+      region[v],
+      "_totalemp.csv"
+    )
+  )
+}
+
+# distribution plots
+p1 <- ggplot(data.frame(coagg_data[[1]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[1]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p2 <- ggplot(data.frame(coagg_data[[2]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[2]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+p3 <- ggplot(data.frame(coagg_data[[3]]), aes(x = coagglomeration)) +
+  geom_histogram(bins=30, , color="black", fill=colors[2]) +
+  ggtitle(region[3]) +
+  xlab("Coagglomeration") +
+  ylab("Frequency") +
+  #scale_y_log10(labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=10), axis.title=element_text(size=15))
+
+(p1 + p2 + p3)
+```
+
+<br>
+megye or urban agglomeration seems to be a better choice..<br>
+<br>
 
 
 ```{r, echo=FAlSE}
@@ -784,6 +790,29 @@ htmltools::includeHTML("../outputs/baseline_coagglom_mnes_models_jaras.html")
 
 ```{r}
 # networks of industry regions
+tr_data[[1]]$indreg1 <- paste0(tr_data[[1]]$nace3d1, "-", tr_data[[1]]$megye_kod1)
+tr_data[[1]]$indreg2 <- paste0(tr_data[[1]]$nace3d2, "-", tr_data[[1]]$megye_kod2)
+
+tr_data[[2]]$indreg1 <- paste0(tr_data[[2]]$nace3d1, "-", tr_data[[2]]$jaras_kod1)
+tr_data[[2]]$indreg2 <- paste0(tr_data[[2]]$nace3d2, "-", tr_data[[2]]$jaras_kod2)
+
+tr_data[[3]]$indreg1 <- paste0(tr_data[[3]]$nace3d1, "-", tr_data[[3]]$agglom_id1)
+tr_data[[3]]$indreg2 <- paste0(tr_data[[3]]$nace3d2, "-", tr_data[[3]]$agglom_id2)
+
+
+tr_graph <- list()
+tr_central <- list()
+for(g in 1:length(region))
+{
+  tr_graph[[g]] <- create_transaction_network(tr_data[[g]], weight = "tb_count")
+  tr_central[[g]] <- data.table(V(tr_graph[[g]])$name,
+                                degree(tr_graph[[g]]),
+                                degree(tr_graph[[g]], mode = "in"),
+                                degree(tr_graph[[g]], mode = "out"))
+  colnames(tr_central[[g]]) <- c("indreg", "degree", "nr_buyer_ties", "nr_supplier_ties")
+}
+
+
 
 ```
 
@@ -793,10 +822,11 @@ htmltools::includeHTML("../outputs/baseline_coagglom_mnes_models_jaras.html")
 ```{r}
 # growth models on industry region level -- baseline model
 gr_df <- fread(paste0("../data/oc_2022_november/indreg_2018_2020_", region[1], ".csv"))
-gr_df$growth_rate <- log10(gr_df$total_emp20 / gr_df$total_emp18)
-gr_df$log10_total_emp18 <- log10(gr_df$total_emp18)
+gr_df$log_growth_rate <- log10(gr_df$total_emp20 / gr_df$total_emp18)
+gr_df$log_total_emp18 <- log10(gr_df$total_emp18)
+gr_df$log_nr_firms18 <- log10(gr_df$nr_firms18)
 
-summary(lm(growth_rate ~ log10_total_emp18, data = gr_df))
+summary(lm(log_growth_rate ~ rca18 + emp_max_hozz18 + log_nr_firms18 + log_total_emp18, data = gr_df))
 
 ```
 

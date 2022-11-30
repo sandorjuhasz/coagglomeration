@@ -43,6 +43,14 @@ sr_transformation <- function(sr_data)
 
 
 
+# create transaction network for industry-regions
+create_transaction_network <- function(el, weight){
+  cols <- c("indreg1", "indreg2", weight)
+  net <- graph_from_data_frame(el[,..cols], directed = TRUE)
+  return(net)
+}
+
+
 
 # functions to normalize variables
 norm01 <- function(column){
