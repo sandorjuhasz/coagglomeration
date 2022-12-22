@@ -22,20 +22,38 @@ create_industry_region_matrix <- function(data, region_col, industry_col, weight
   data <- dplyr::select(data, all_of(cols))
   
   # edgelist to matrix
-  mat <- as.matrix(reshape(data, idvar = "reg", timevar = "ind", direction = "wide"))
+  mat <- as.matrix(reshape(data,
+                           idvar = "reg",
+                           timevar = "ind",
+                           direction = "wide"))
+  
+  # clean up
+  rownames(mat) <- unique(mat[,1])
   mat <- mat[,-1]
-  rownames(mat) <- unique(edgelist$reg)
-  colnames(mat) <- unique(edgelist$ind)
+  colnames(mat) <- unique(data$ind)
   mat[is.na(mat)] <- 0
+  
   return(mat)
 }
+
   
 # Mcp matrix
-mat <- create_industry_region_matrix(ir_df, region_col = "reg", industry_col = "ind", weight_col = "nr_firms18")  
+ir_df$rca18d <- ifelse(ir_df$rca18 >= 1, 1, 0)
+mat <- create_industry_region_matrix(ir_df,
+                                     region_col = "reg",
+                                     industry_col = "ind",
+                                     weight_col = "rca18d")
 
 
+# Mcc matrix
+mat %*% t(mat)
+
+
+# Mpp matrix
+t(mat) %*% mat
 
 # Lc'p matrix
+
 
 # multiply
 
