@@ -52,6 +52,11 @@ mat %*% t(mat)
 # Mpp matrix
 t(mat) %*% mat
 
+
+# relatedness
+relatedness(t(mat) %*% mat, method = "association")
+
+hist(relatedness(t(mat) %*% mat, method = "association"))
 # Lc'p matrix
 
 
