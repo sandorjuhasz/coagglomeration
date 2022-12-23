@@ -53,10 +53,31 @@ mat %*% t(mat)
 t(mat) %*% mat
 
 
-# relatedness
+# coagglomeration -- as relatedness
+library(EconGeo)
 relatedness(t(mat) %*% mat, method = "association")
 
-hist(relatedness(t(mat) %*% mat, method = "association"))
+# association strength
+assoc <- function (x, s) {
+  drop(crossprod(x^2, s))
+}
+
+# co-occurrence
+cooccurrence_normalized <- function (X, norm = assoc) {
+  X <- as(X, "dgCMatrix")
+  diag(X) <- 0
+  S <- rep(1, nrow(X))
+  N <- Diagonal(x = match.fun(norm)(X, S)^-1)
+  X <- X %*% N
+  X <- crossprod(X)
+  diag(X) <- 0
+  return(X)
+}
+
+
+cooccurrence_normalized(mat)
+
+
 # Lc'p matrix
 
 
