@@ -4,6 +4,7 @@
 library(data.table)
 library(dplyr)
 library(igraph)
+library(Matrix)
 
 
 # data sources
@@ -46,16 +47,13 @@ mat <- create_industry_region_matrix(ir_df,
 
 
 # Mcc matrix
-mat %*% t(mat)
+mcc_mat <- mat %*% t(mat)
 
 
 # Mpp matrix
-t(mat) %*% mat
+mpp_mat <- t(mat) %*% mat
 
 
-# coagglomeration -- as relatedness
-library(EconGeo)
-relatedness(t(mat) %*% mat, method = "association")
 
 # association strength
 assoc <- function (x, s) {
@@ -63,7 +61,7 @@ assoc <- function (x, s) {
 }
 
 # co-occurrence
-cooccurrence_normalized <- function (X, norm = assoc) {
+coo_normalized <- function (X, norm = assoc) {
   X <- as(X, "dgCMatrix")
   diag(X) <- 0
   S <- rep(1, nrow(X))
@@ -75,7 +73,13 @@ cooccurrence_normalized <- function (X, norm = assoc) {
 }
 
 
-cooccurrence_normalized(mat)
+coagg_matrix <- coo_normalized(mcc_mat)
+
+
+# coagglomeration -- as relatedness
+library(EconGeo)
+relatedness(t(mat) %*% mat, method = "association")
+
 
 
 # Lc'p matrix
