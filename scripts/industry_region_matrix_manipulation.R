@@ -1,10 +1,12 @@
 ## industry-region matrix manipulation -- coagglomeration and MNEs
 ## developed by sandorjuhasz
 
+
 library(data.table)
 library(dplyr)
 library(igraph)
 library(Matrix)
+library(mefa4)
 
 
 # data sources
@@ -72,8 +74,9 @@ coo_normalized <- function (X, norm = assoc) {
   return(X)
 }
 
-
-coagg_matrix <- coo_normalized(mcc_mat)
+coagg_matrix <- coo_normalized(mpp_mat)
+coagg_data <- data.table(Melt(coagg_matrix))
+colnames(coagg_data) <- c("ind1", "ind2", "coagglomeration")
 
 
 # coagglomeration -- as relatedness
