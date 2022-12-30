@@ -81,8 +81,18 @@ colnames(coagg_data) <- c("ind1", "ind2", "coagglomeration")
 
 # coagglomeration -- as relatedness
 library(EconGeo)
-relatedness(t(mat) %*% mat, method = "association")
+#rel_matrix <- relatedness(t(mat) %*% mat, method = "association")
+rel_matrix <- relatedness(mpp_mat)
+rel_data <- data.table(Melt(rel_matrix))
+colnames(rel_data) <- c("ind1", "ind2", "coagglomeration")
 
+coagg_version <- merge(
+  coagg_data,
+  rel_data,
+  by = c("ind1", "ind2"),
+  all.x = TRUE,
+  all.y = FALSE
+)
 
 
 # Lc'p matrix
