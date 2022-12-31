@@ -31,14 +31,14 @@ create_industry_region_matrix <- function(data, region_col, industry_col, weight
   
   # edgelist to matrix
   mat <- as.matrix(reshape(data,
-                           idvar = "reg",
-                           timevar = "ind",
+                           idvar = region_col,
+                           timevar = industry_col,
                            direction = "wide"))
   
   # clean up
   rownames(mat) <- unique(mat[,1])
   mat <- mat[,-1]
-  colnames(mat) <- unique(data$ind)
+  colnames(mat) <- unique(c(dplyr::select(data, .dots=industry_col))[[1]])
   mat[is.na(mat)] <- 0
   
   return(mat)
@@ -53,6 +53,12 @@ mat <- create_industry_region_matrix(ir_df,
                                      weight_col = "total_emp18")
 
 
+
+# MNE emp matrix
+create_industry_region_matrix(mne_df,
+                              region_col = "megye_kod",
+                              industry_col = "nace3d",
+                              weight_col = "mne_emp")
 
 
 # Lc'p matrix
