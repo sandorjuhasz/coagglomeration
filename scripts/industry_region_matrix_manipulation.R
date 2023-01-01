@@ -22,6 +22,19 @@ mne_df <- fread("../data/oc_2022_november/mne_share_nace3d_megye.csv")
 coagg_df <- fread("../data/oc_2022_november/coagglomeration_manufacturing_nace3d_megye_totalemp.csv")
 
 
+
+# data manipulation
+df <- merge(
+  ir_df,
+  mne_df[, .(megye_kod, nace3d, mne_emp)],
+  by.x = c("reg", "ind"),
+  by.y = c("megye_kod", "nace3d"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+
+
 #  matrix construction
 create_industry_region_matrix <- function(data, region_col, industry_col, weight_col)
 {
@@ -55,10 +68,14 @@ mat <- create_industry_region_matrix(ir_df,
 
 
 # MNE emp matrix
-create_industry_region_matrix(mne_df,
-                              region_col = "megye_kod",
-                              industry_col = "nace3d",
-                              weight_col = "mne_emp")
+
+
+mne_mat <- create_industry_region_matrix(mne_df,
+                                         region_col = "megye_kod",
+                                         industry_col = "nace3d",
+                                         weight_col = "mne_emp")
+
+
 
 
 # Lc'p matrix
