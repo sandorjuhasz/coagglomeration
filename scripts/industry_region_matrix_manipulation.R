@@ -24,6 +24,8 @@ coagg_df <- fread("../data/oc_2022_november/coagglomeration_manufacturing_nace3d
 
 
 # data manipulation
+ir_df$rca18d <- ifelse(ir_df$rca18 >= 1, 1, 0)
+
 df <- merge(
   ir_df,
   mne_df[, .(megye_kod, nace3d, mne_emp)],
@@ -32,6 +34,8 @@ df <- merge(
   all.x = TRUE,
   all.y = FALSE
 )
+
+df$local_emp <- df$total_emp18 - df$mne_emp
 
 
 
@@ -51,36 +55,34 @@ create_industry_region_matrix <- function(data, region_col, industry_col, weight
   # clean up
   rownames(mat) <- unique(mat[,1])
   mat <- mat[,-1]
-  colnames(mat) <- unique(c(dplyr::select(data, .dots=industry_col))[[1]])
+  colnames(mat) <- c(unique(dplyr::select(data, all_of(industry_col))))[[1]]
   mat[is.na(mat)] <- 0
   
   return(mat)
 }
 
-  
+
+
 # Mcp matrix
-ir_df$rca18d <- ifelse(ir_df$rca18 >= 1, 1, 0)
-mat <- create_industry_region_matrix(ir_df,
+mcp <- create_industry_region_matrix(df,
                                      region_col = "reg",
                                      industry_col = "ind",
                                      weight_col = "total_emp18")
 
-
-
-# MNE emp matrix
-
-
-mne_mat <- create_industry_region_matrix(mne_df,
-                                         region_col = "megye_kod",
-                                         industry_col = "nace3d",
+# mne_mat
+mne_mcp <- create_industry_region_matrix(df,
+                                         region_col = "reg",
+                                         industry_col = "ind",
                                          weight_col = "mne_emp")
 
+local_mcp <- create_industry_region_matrix(df,
+                                           region_col = "reg",
+                                           industry_col = "ind",
+                                           weight_col = "local_emp")
 
 
-
-# Lc'p matrix
-ir_df
-mne_df
+# need to introduce a filter..
+mne_mcp %*% t(local_mcp)
 
 # Mcp * Lc'p will give an Mcc' matrix -- but it is connected to coagglormation (?)
 
