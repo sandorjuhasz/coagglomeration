@@ -7,6 +7,9 @@ library(dplyr)
 library(igraph)
 library(Matrix)
 library(mefa4)
+library(reshape2)
+library(ggplot2)
+library(cowplot)
 
 
 
@@ -67,7 +70,7 @@ create_industry_region_matrix <- function(data, region_col, industry_col, weight
 mcp <- create_industry_region_matrix(df,
                                      region_col = "reg",
                                      industry_col = "ind",
-                                     weight_col = "total_emp18")
+                                     weight_col = "total_emp")
 
 # mne_mat
 mne_mcp <- create_industry_region_matrix(df,
@@ -87,6 +90,10 @@ mne_mcp %*% t(local_mcp)
 # Mcp * Lc'p will give an Mcc' matrix -- but it is connected to coagglormation (?)
 
 
+# mcp
+data.table(Melt(mcp))
+data.table(reshape2::melt(mcp))
+subset(data.table(reshape2::melt(mcp)), value > 0)
 
 
 
@@ -180,6 +187,80 @@ mpp_mat <- t(mat) %*% mat
 
 
 
+
+
+# Mcp matrix visualization
+mcp <- create_industry_region_matrix(df,
+                                     region_col = "reg",
+                                     industry_col = "ind",
+                                     weight_col = "rca18d")
+
+heatmap(mcp, Rowv = NA, Colv = NA)
+
+
+
+vdf <- dplyr::select(df, reg, ind, rca18d)
+colnames(vdf) <- c("reg", "ind", "rca01")
+
+vdf <- vdf %>%
+  group_by(ind) %>%
+  mutate(nr_reg_rca = sum(rca01)) %>%
+  ungroup %>%
+  group_by(reg) %>%
+  mutate(nr_ind_rca = sum(rca01)) %>%
+  arrange(desc(nr_reg_rca), desc(nr_ind_rca)) %>%
+  data.table()
+
+temp1 <- data.table(unique(vdf$ind),
+                   seq(1, length(unique(vdf$ind)), by = 1))
+colnames(temp1) <- c("ind", "new_ind")
+temp2 <- data.table(unique(vdf$reg),
+                    seq(1, length(unique(vdf$reg)), by = 1))
+colnames(temp2) <- c("reg", "new_reg")
+
+vdf <- merge(
+  vdf,
+  temp1,
+  by = "ind",
+  all.x = TRUE,
+  all.y = FALSE
+)
+vdf <- merge(
+  vdf,
+  temp2,
+  by = "reg",
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+vdf <- arrange(vdf, new_ind, new_reg)
+
+
+# ggplot axis text size preset
+custom_theme_xrotation <- function(...){
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=25)) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+}
+
+ggplot(vdf, aes(x=new_reg, y=new_ind)) +
+  geom_tile(aes(fill = rca01)) +
+  xlab("Regions") +
+  ylab("Industries") +
+  scale_fill_gradient(name = "", low = "white", high = "darkblue") +
+  theme_cowplot(12) +
+  theme(legend.position="none") +
+  custom_theme_xrotation()
+  
+
+heatmap(mcp, Rowv = NA, Colv = NA)
+
+
+
+
+set.seed(123)                                                     # Set seed for reproducibility
+data <- matrix(rnorm(100, 0, 10), nrow = 10, ncol = 10)           # Create example data
+colnames(data) <- paste0("col", 1:10)                             # Column names
+rownames(data) <- paste0("row", 1:10)  
 
 
 
