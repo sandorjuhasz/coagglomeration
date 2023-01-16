@@ -10,7 +10,7 @@ library(mefa4)
 library(reshape2)
 library(ggplot2)
 library(cowplot)
-
+library(RColorBrewer)
 
 
 # parameters
@@ -70,7 +70,7 @@ create_industry_region_matrix <- function(data, region_col, industry_col, weight
 mcp <- create_industry_region_matrix(df,
                                      region_col = "reg",
                                      industry_col = "ind",
-                                     weight_col = "total_emp")
+                                     weight_col = "total_emp18")
 
 # mne_mat
 mne_mcp <- create_industry_region_matrix(df,
@@ -195,7 +195,49 @@ mcp <- create_industry_region_matrix(df,
                                      industry_col = "ind",
                                      weight_col = "rca18d")
 
-heatmap(mcp, Rowv = NA, Colv = NA)
+mcp <- mcp[order(rowSums(mcp), decreasing=FALSE),]
+mcp <- mcp[,order(colSums(mcp), decreasing=TRUE)]
+
+
+heatmap(mcp,
+        Rowv = NA,
+        Colv = NA,
+        scale="none",
+        xlab = "Industries",
+        ylab = "Regions",
+        col = brewer.pal(9,"Blues"),
+        key = FALSE)
+
+
+heatmap.2(
+  mcp,
+  Rowv = NA,
+  Colv = NA,
+  dendrogram = "none",
+  density.info = "none",
+  scale="none",
+  xlab = "Industries",
+  ylab = "Regions",
+  col = brewer.pal(9,"Blues")
+)
+
+
+
+
+title <- "mcp_heatmap"
+file_name <- paste0("../figures/", title, ".png")
+png(file_name, width=800, height=700, units = 'px')
+heatmap(mcp,
+        Rowv = NA,
+        Colv = NA,
+        xlab = "Industries",
+        ylab = "Regions",
+
+        col = brewer.pal(9,"Blues"))
+dev.off()
+
+
+
 
 
 
@@ -252,8 +294,6 @@ ggplot(vdf, aes(x=new_reg, y=new_ind)) +
   custom_theme_xrotation()
   
 
-heatmap(mcp, Rowv = NA, Colv = NA)
-
 
 
 
@@ -295,6 +335,61 @@ coagg_version <- merge(
 
 
 
+
+
+## example matrix to ggplot2 heatmap
+
+n_row <- 30
+n_col <- 10
+# a mtrix with random numbers
+dat <- matrix(rnorm(n_row*n_col),ncol=n_col)
+dim(dat)
+
+# column and row names 
+colnames(dat) <- paste0("S",seq(1,n_col))
+rownames(dat) <- paste0("f",seq(1,n_row))
+
+# add signals to matrix
+dat[,1:(n_col/2)] <- matrix(rnorm(n_row*n_col/2,mean=50,sd=5),ncol=n_col/2)
+dat[,((n_col/2)+1):n_col] <- matrix(rnorm(n_row*n_col/2,mean=70,sd=5),n_col/2)
+#colnames(dat) <- paste0("S",c(rep(1,n_col/2),rep(2,n_col/2)))
+head(dat)
+
+dat %>%
+  as.data.frame() %>%
+  rownames_to_column("f_id") %>%
+  pivot_longer(-c(f_id), names_to = "samples", values_to = "counts")
+
+dat %>% 
+  as.data.frame() %>%
+  rownames_to_column("f_id") %>%
+  pivot_longer(-c(f_id), names_to = "samples", values_to = "counts") %>%
+  mutate(samples= fct_relevel(samples,colnames(dat))) %>%
+  ggplot(aes(x=samples, y=f_id, fill=counts)) + 
+  geom_raster() + 
+  scale_fill_viridis_c()
+
+
+
+
+# Mcp matrix visualization
+mcp <- create_industry_region_matrix(df,
+                                     region_col = "reg",
+                                     industry_col = "ind",
+                                     weight_col = "rca18d")
+
+mcp <- mcp[order(rowSums(mcp), decreasing=T),]
+mcp <- mcp[,order(colSums(mcp), decreasing=T)]
+
+
+mcp %>%
+  as.data.frame() %>%
+  rownames_to_column("reg") %>%
+  pivot_longer(-c(reg), names_to = "ind", values_to = "nr_rca") %>%
+  mutate(ind = fct_relevel(ind, colnames(mcp))) %>%
+  ggplot(aes(x = ind, y = reg, fill = nr_rca)) + 
+  geom_raster() + 
+  scale_fill_viridis_c()
 
 
 # multiply
