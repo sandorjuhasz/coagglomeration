@@ -28,6 +28,87 @@ mdf2$log_nr_firms1 <- log10(mdf2$nr_firms1)
 mdf2$log_nr_firms2 <- log10(mdf2$nr_firms2)
 mdf2$log_nr_mnes1 <- log10(mdf2$nr_mnes1)
 mdf2$log_nr_mnes2 <- log10(mdf2$nr_mnes2)
+mdf2$log_nr_locals1 <- log10(mdf2$nr_locals1)
+mdf2$log_nr_locals2 <- log10(mdf2$nr_locals2)
+
+
+
+
+
+mod1 <- lm(coagg ~ log_nr_conn, data = mdf2)
+mod2 <- lm(coagg ~ relatedness, data = mdf2)
+mod1c <- lm(coagg ~ log_nr_conn + log_nr_firms1 + log_nr_firms2, data = mdf2)
+mod2c <- lm(coagg ~ relatedness+ log_nr_firms1 + log_nr_firms2, data = mdf2)
+mod3 <- lm(coagg ~ log_nr_conn + relatedness+ log_nr_firms1 + log_nr_firms2, data = mdf2)
+
+stargazer(mod1,
+          mod2,
+          mod1c,
+          mod2c,
+          mod3,
+          dep.var.labels = "Coagglomeration",
+          dep.var.caption = "",
+          covariate.labels = c("Nr transaction ties (log)", "Skill relatedness", "Nr firms1", "Nr firms2"),
+          omit.stat = c("f", "ser"),
+          out="../outputs/m02_regressions-01.html")
+
+
+
+mne_mod1 <- lm(coagg_mne ~ log_nr_conn_mne, data = subset(mdf2, nr_mnes1 > 0 & nr_mnes2 > 0))
+mne_mod2 <- lm(coagg_mne ~ relatedness, data = subset(mdf2, nr_mnes1 > 0 & nr_mnes2 > 0))
+mne_mod1c <- lm(coagg_mne ~ log_nr_conn_mne + log_nr_mnes1 + log_nr_mnes2, data = subset(mdf2, nr_mnes1 > 0 & nr_mnes2 > 0))
+mne_mod2c <- lm(coagg_mne ~ relatedness + log_nr_mnes1 + log_nr_mnes2, data = subset(mdf2, nr_mnes1 > 0 & nr_mnes2 > 0))
+mne_mod3 <- lm(coagg_mne ~ log_nr_conn_mne + relatedness + log_nr_mnes1 + log_nr_mnes2, data = subset(mdf2, nr_mnes1 > 0 & nr_mnes2 > 0))
+
+stargazer(mne_mod1,
+          mne_mod2,
+          mne_mod1c,
+          mne_mod2c,
+          mne_mod3,
+          dep.var.labels = "Coagglomeration of MNEs",
+          dep.var.caption = "",
+          covariate.labels = c("Nr transactions betw MNEs (log)", "Skill relatedness", "Nr MNE1", "Nr MNE2"),
+          omit.stat = c("f", "ser"),
+          out="../outputs/m02_regressions-02-mne.html")
+
+
+dom_mod1 <- lm(coagg_local ~ log_nr_conn_local, data = subset(mdf2, nr_locals1 > 0 & nr_locals2 > 0))
+dom_mod2 <- lm(coagg_local ~ relatedness, data = subset(mdf2, nr_locals1 > 0 & nr_locals2 > 0))
+dom_mod1c <- lm(coagg_local ~ log_nr_conn_local + log_nr_locals1 + log_nr_locals2, data = subset(mdf2, nr_locals1 > 0 & nr_locals2 > 0))
+dom_mod2c <- lm(coagg_local ~ relatedness + log_nr_locals1 + log_nr_locals2, data = subset(mdf2, nr_locals1 > 0 & nr_locals2 > 0))
+dom_mod3 <- lm(coagg_local ~ log_nr_conn_local + relatedness + log_nr_locals1 + log_nr_locals2, data = subset(mdf2, nr_locals1 > 0 & nr_locals2 > 0))
+
+stargazer(dom_mod1,
+          dom_mod2,
+          dom_mod1c,
+          dom_mod2c,
+          dom_mod3,
+          dep.var.labels = "Coagglomeration of domestic firms",
+          dep.var.caption = "",
+          covariate.labels = c("Nr transactions betw dom (log)", "Skill relatedness", "Nr dom1", "Nr dom2"),
+          omit.stat = c("f", "ser"),
+          out="../outputs/m02_regressions-03-domestic.html")
+
+
+mix_mod1 <- lm(coagg_mne_local ~ log_nr_conn_mixed, data = mdf2)
+mix_mod2 <- lm(coagg_mne_local ~ relatedness, data = mdf2)
+mix_mod1c <- lm(coagg_mne_local ~ log_nr_conn_mixed + log_nr_firms1 + log_nr_firms2, data = mdf2)
+mix_mod2c <- lm(coagg_mne_local ~ relatedness+ log_nr_firms1 + log_nr_firms2, data = mdf2)
+mix_mod3 <- lm(coagg_mne_local ~ log_nr_conn_mixed + relatedness+ log_nr_firms1 + log_nr_firms2, data = mdf2)
+
+stargazer(mix_mod1,
+          mix_mod2,
+          mix_mod1c,
+          mix_mod2c,
+          mix_mod3,
+          dep.var.labels = "Coagglomeration mixed",
+          dep.var.caption = "",
+          covariate.labels = c("Nr transactions betw dom and MNE (log)", "Skill relatedness", "Nr firms1", "Nr firms2"),
+          omit.stat = c("f", "ser"),
+          out="../outputs/m02_regressions-04-mixed.html")
+
+
+
 
 
 
@@ -53,24 +134,6 @@ summary(lm(coagg_mne ~ relatedness + log_nr_firms1 + log_nr_firms2, data = mdf2)
 summary(lm(coagg_mne ~ log_nr_conn + relatedness + log_nr_firms1 + log_nr_firms2, data = mdf2))
 summary(lm(coagg_mne ~ log_nr_conn_mne + relatedness + log_nr_firms1 + log_nr_firms2,
            data = subset(mdf2, nr_mnes1 > 0 & nr_mnes2 > 0)))
-
-
-mod1 <- lm(coagg ~ log_nr_conn, data = mdf2)
-mod2 <- lm(coagg ~ relatedness, data = mdf2)
-mod1c <- lm(coagg ~ log_nr_conn + log_nr_firms1 + log_nr_firms2, data = mdf2)
-mod2c <- lm(coagg ~ relatedness+ log_nr_firms1 + log_nr_firms2, data = mdf2)
-mod3 <- lm(coagg ~ log_nr_conn + relatedness+ log_nr_firms1 + log_nr_firms2, data = mdf2)
-
-stargazer(mod1,
-          mod2,
-          mod1c,
-          mod2c,
-          mod3,
-          dep.var.labels = "Coagglomeration",
-          dep.var.caption = "",
-          covariate.labels = c("Nr transaction ties (log)", "Skill relatedness", "Nr firms1", "Nr firms2"),
-          omit.stat = c("f", "ser"),
-          out="../outputs/m02_regressions-01.html")
 
 
 
