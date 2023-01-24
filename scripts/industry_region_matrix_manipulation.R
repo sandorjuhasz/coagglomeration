@@ -394,3 +394,10 @@ mcp %>%
 
 # multiply
 
+
+
+# IO rel from France
+library(haven)
+IO_fr <- read_dta("../data/IOrel_France.dta") %>% data.table()
+
+
