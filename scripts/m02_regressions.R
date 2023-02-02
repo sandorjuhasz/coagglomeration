@@ -582,6 +582,23 @@ summary(lm(coagg_mne_local ~ log_nr_conn + relatedness + log_nr_firms1 + log_nr_
 
 
 
+## iv test
 
+swe_sr_df <- fread("../data/relatedness/srnet_nat_3dig_avg_13_19.csv")
 
+mdf3 <- merge(
+  mdf2,
+  swe_sr_df,
+  by.x = c("ind1", "ind2"),
+  by.y = c("ind_i", "ind_j"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+mdf3$sr_norm[is.na(mdf3$sr_norm)==1] <- 0
+
+summary(mod1 <- lm(coagg ~ relatedness, data = mdf3))
+summary(mod1 <- lm(coagg ~ sr_norm, data = mdf3))
+
+library(ivreg)
+summary(ivreg(coagg ~ relatedness | sr_norm, data = mdf3))
 # 
