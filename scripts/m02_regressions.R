@@ -615,6 +615,7 @@ summary(ivreg(coagg ~ relatedness + log_nr_firms1 + log_nr_firms2 | sr_norm + lo
 mdf2 <- fread("../data/oc_2023_january/oc_m01_data_output_megye.csv")
 swe_io <- fread("../outputs/swe_io_2digit_nace.csv", sep = ";")
 
+
 mdf2$nace2d1 <- as.integer(substr(mdf2$ind1, 1, nchar(mdf2$ind1)-1))
 mdf2$nace2d2 <- as.integer(substr(mdf2$ind2, 1, nchar(mdf2$ind1)-1))
 
@@ -638,3 +639,36 @@ summary(mod2 <- lm(coagg ~ log_value_corrected + log_nr_firms1 + log_nr_firms2, 
 summary(ivm01 <- ivreg(coagg ~ log_nr_conn + log_nr_firms1 + log_nr_firms2 | log_value_corrected + log_nr_firms1 + log_nr_firms2, data = mdf4))
 ivm01_coeff <- coeftest(ivm01, vcov = vcovCL, cluster = ~for_2digit_vcov)
 
+
+# combined
+mdf2 <- fread("../data/oc_2023_january/oc_m01_data_output_megye.csv")
+swe_sr_df <- fread("../data/relatedness/srnet_nat_3dig_avg_13_19.csv")
+swe_io <- fread("../outputs/swe_io_2digit_nace.csv", sep = ";")
+
+mdf3 <- merge(
+  mdf2,
+  swe_sr_df,
+  by.x = c("ind1", "ind2"),
+  by.y = c("ind_i", "ind_j"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+mdf3$sr_norm[is.na(mdf3$sr_norm)==1] <- 0
+
+mdf3$nace2d1 <- as.integer(substr(mdf3$ind1, 1, nchar(mdf3$ind1)-1))
+mdf3$nace2d2 <- as.integer(substr(mdf3$ind2, 1, nchar(mdf3$ind1)-1))
+
+mdf4 <- merge(
+  mdf3,
+  swe_io,
+  by.x = c("nace2d1", "nace2d2"),
+  by.y = c("ind_2dig_i", "ind_2dig_j"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+mdf4$log_value_corrected <- log10(mdf4$value_corrected + 0.1)
+mdf4$for_2digit_vcov <- paste0(mdf4$nace2d1, "-", mdf4$nace2d2)
+
+summary(ivm01 <- ivreg(coagg ~ log_nr_conn + relatedness + log_nr_firms1 + log_nr_firms2 | log_value_corrected + sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf4))
+ivm01_coeff <- coeftest(ivm01, vcov = vcovCL, cluster = ~for_2digit_vcov)
