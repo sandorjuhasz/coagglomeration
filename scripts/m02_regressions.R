@@ -598,7 +598,9 @@ mdf3$sr_norm[is.na(mdf3$sr_norm)==1] <- 0
 
 summary(mod1 <- lm(coagg ~ relatedness, data = mdf3))
 summary(mod1 <- lm(coagg ~ sr_norm, data = mdf3))
+summary(mod2 <- lm(coagg ~ relatedness + log_nr_firms1 + log_nr_firms2, data = mdf3))
+summary(mod2 <- lm(coagg ~ sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
 
 library(ivreg)
-summary(ivreg(coagg ~ relatedness | sr_norm, data = mdf3))
+summary(ivreg(coagg ~ relatedness + log_nr_firms1 + log_nr_firms2 | sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
 # 
