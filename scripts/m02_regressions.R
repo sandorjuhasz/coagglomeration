@@ -670,5 +670,10 @@ mdf4 <- merge(
 mdf4$log_value_corrected <- log10(mdf4$value_corrected + 0.1)
 mdf4$for_2digit_vcov <- paste0(mdf4$nace2d1, "-", mdf4$nace2d2)
 
+summary(mod0 <- lm(coagg ~ log_nr_conn + relatedness, data = mdf4))
+
+summary(ivm00 <- ivreg(coagg ~ log_nr_conn + relatedness | log_value_corrected + sr_norm, data = mdf4))
+ivm01_coeff <- coeftest(ivm00, vcov = vcovCL, cluster = ~for_2digit_vcov)
+
 summary(ivm01 <- ivreg(coagg ~ log_nr_conn + relatedness + log_nr_firms1 + log_nr_firms2 | log_value_corrected + sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf4))
 ivm01_coeff <- coeftest(ivm01, vcov = vcovCL, cluster = ~for_2digit_vcov)
