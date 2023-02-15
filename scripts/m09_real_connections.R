@@ -104,6 +104,20 @@ create_regional_network <- function(el, reg, weight, rca_filter){
 }
 sgraph <- create_regional_network(tr_el, reg = 3, weight = "tb_count", rca_filter = FALSE)
 
+
+rca_to_net <- data.table(V(sgraph)$name)
+colnames(rca_to_net) <- "ind"
+rca_to_net$ind <- as.integer(rca_to_net$ind)
+rca_to_net <- merge(
+  rca_to_net,
+  select(subset(indreg18, reg == 3), ind, rca01),
+  by = "ind",
+  all.x = TRUE,
+  all.y = FALSE
+)
+rca_to_net$rca_emp_color <- ifelse(rca_to_net$rca01 ==1, "darkgreen", "grey")
+
+
 # plot the network -- nicely
 set.seed(665)
 ggraph(sgraph, layout = "nicely") +
@@ -114,9 +128,18 @@ ggraph(sgraph, layout = "nicely") +
 # plot the network -- stress-full
 set.seed(265)
 p1 <- ggraph(sgraph, layout = "stress") +
-  geom_edge_link0(width = 0.25, colour = "grey") +
-  geom_node_point(col = "darkgreen", size = 5) +
+  geom_edge_link0(width = 0.25, colour = "#264653") +
+  geom_node_point(col = rca_to_net$rca_emp_color, size = 5) +
   theme_graph()
+
+ggraph(sgraph, layout = "stress") +
+  geom_edge_link0(width = 0.25, colour = "#e9c46a") +
+  geom_node_point(col = rca_to_net$rca_emp_color, size = 5) +
+  theme_graph()
+
+
+# rca_to_net$rca_emp_color
+
 
 rca_sgraph <- create_regional_network(tr_el, reg = 3, weight = "tb_count", rca_filter = TRUE)
 p2 <- ggraph(rca_sgraph, layout = "stress") +
@@ -124,7 +147,63 @@ p2 <- ggraph(rca_sgraph, layout = "stress") +
   geom_node_point(col = "darkgreen", size = 5) +
   theme_graph()
 
+# compare density
+edge_density(sgraph, loops = TRUE)
+edge_density(rca_sgraph, loops = TRUE)
 
-edge_density(sgraph)
+# random graph for full network
+er_graph <- erdos.renyi.game(vcount(sgraph), ecount(sgraph), type = "gnm", directed = TRUE, loops = TRUE)
+edge_density(er_graph)
+ggraph(er_graph, layout = "stress") +
+  geom_edge_link0(width = 0.25, colour = "grey") +
+  geom_node_point(col = "darkgreen", size = 5) +
+  theme_graph()
 
-edge_density(rca_sgraph)
+# random graph for RCA >= 1 network
+er_rca_graph <- erdos.renyi.game(vcount(rca_sgraph), ecount(rca_sgraph), type = "gnm", directed = TRUE, loops = TRUE)
+edge_density(er_rca_graph)
+ggraph(er_rca_graph, layout = "stress") +
+  geom_edge_link0(width = 0.25, colour = "grey") +
+  geom_node_point(col = "darkgreen", size = 5) +
+  theme_graph()
+
+
+edge_density(rca_sgraph, loops = TRUE) / edge_density(sgraph, loops = TRUE)
+transitivity(rca_sgraph, type="global") / transitivity(sgraph, type="global")
+
+transitivity(sgraph, type="global")
+transitivity(rca_sgraph, type="global")
+transitivity(er_graph, type="global")
+transitivity(er_rca_graph, type="global")
+
+rel_trans_sgraph <- transitivity(sgraph, type="global") / transitivity(er_graph, type="global")
+rel_trans_rca_sgraph <- transitivity(er_graph, type="global") / transitivity(er_rca_graph, type="global")
+
+
+rel_trans_rca_sgraph / rel_trans_sgraph
+
+
+
+
+# write for gephi
+tr_el$rca01_1[is.na(tr_el$rca01_1)==1] <- 0
+tr_el$rca01_2[is.na(tr_el$rca01_2)==1] <- 0
+
+
+export_el <- tr_el %>%
+  filter(megye_kod1 == 3 & megye_kod2 == 3) %>%
+  select(nace3d1, nace3d2, tb_count, mne_dom_50_1, mne_dom_50_2, rca01_1, rca01_2) %>%
+  rename(Source = nace3d1, Target = nace3d2) %>%
+  data.table()
+
+
+export_nodes <- indreg18 %>%
+  filter(reg == 3) %>%
+  select(ind, rca01) %>%
+  rename(Id = ind) %>%
+  data.table()
+
+write.table(export_el, "../outputs/gephi_illustration_edgelist.csv", sep=";", row.names = FALSE)
+write.table(export_nodes, "../outputs/gephi_illustration_nodelist.csv", sep=";", row.names = FALSE)
+
+
