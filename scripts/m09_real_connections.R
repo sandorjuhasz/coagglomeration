@@ -82,6 +82,8 @@ lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties
 
 # graph stats for all regional networks
 reg_codes <- unique(c(ir_el$reg1, ir_el$reg2))
+rn_table <- list()
+
 for(r in 1:length(reg_codes))
 {
   # create io graphs
@@ -90,6 +92,7 @@ for(r in 1:length(reg_codes))
   io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE)
   random_io_rca <- erdos.renyi.game(vcount(io_graph_rca), ecount(io_graph_rca), type = "gnm", directed = TRUE, loops = TRUE)
   
+  # io table with network statistics
   io_table <- data.table(
     reg = r,
     io_nodes = vcount(io_graph),
@@ -105,13 +108,14 @@ for(r in 1:length(reg_codes))
     io_clustering_random_rca = (transitivity(io_graph_rca, type = "global") / transitivity(random_io_rca, type = "global"))
   )
   
+  # create labor flow graphs
   lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE)
   random_lab <- erdos.renyi.game(vcount(lab_graph), ecount(lab_graph), type = "gnm", directed = TRUE, loops = TRUE)
   lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE)
   random_lab_rca <- erdos.renyi.game(vcount(lab_graph_rca), ecount(lab_graph_rca), type = "gnm", directed = TRUE, loops = TRUE)
   
+  # labor table with network statistics
   lab_table <- data.table(
-    reg = r,
     lab_nodes = vcount(lab_graph),
     lab_edges = ecount(lab_graph),
     lab_density = edge_density(lab_graph, loops = FALSE),
@@ -124,7 +128,31 @@ for(r in 1:length(reg_codes))
     lab_clustering_rca = transitivity(lab_graph_rca, type = "global"),
     lab_clustering_random_rca = transitivity(lab_graph_rca, type = "global") / transitivity(random_lab_rca, type = "global")
   )
+  
+  # combine
+  rn_table[[r]] <- cbind(io_table, lab_table)
+  
 }
+
+# combine to region network table
+rn_table<- rbindlist(rn_table)
+
+# add names
+rn_table <- merge(
+  rn_table,
+  unique(select(region_codes, megye_kod, megye_nev))[1:20],
+  by.x = "reg",
+  by.y = "megye_kod",
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+# export
+write.table(rn_table, "../outputs/region_network_descriptive.csv", sep=";", row.names = FALSE)
+
+
+
+
 
 
 
