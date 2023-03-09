@@ -16,11 +16,17 @@ ind <- 3
 ir_el <- fread("../data/oc_2023_march_labor/m01_ir_ir_el_output_OC.csv")
 indreg_gr <- fread("../data/oc_2022_november/indreg_2018_2020_megye.csv")
 region_codes <- fread("../data/oc_2022_november/region_codes.csv", sep = ";")
+mne_df <- fread("../data/oc_2022_november/mne_share_nace3d_megye.csv", sep=";") %>%
+  rename(reg = megye_kod, ind = nace3d) %>%
+  data.table()
+
+
 
 # generate industry-region ids
 ir_el$ir_id1 <- paste0(ir_el$reg1, "-", ir_el$ind1)
 ir_el$ir_id2 <- paste0(ir_el$reg2, "-", ir_el$ind2)
 indreg_gr$ir_id <- paste0(indreg_gr$reg, "-", indreg_gr$ind)
+mne_df$ir_id <- paste0(mne_df$reg, "-", mne_df$ind)
 
 # rca01 for indreg growth dataframe
 indreg_gr$rca01 <- ifelse(indreg_gr$rca18 >=1, 1, 0)
@@ -44,6 +50,9 @@ ir_el <- merge(
   suffixes = c("1", "2")
 )
 ir_el <- rename(ir_el, reg_name1 = megye_nev1, reg_name2 = megye_nev2)
+
+
+
 
 
 ###### network inside regions ######
@@ -152,6 +161,8 @@ write.table(rn_table, "../outputs/region_network_descriptive.csv", sep=";", row.
 
 
 
+
+
 ###### gephi export ######
 export_el <- ir_el %>%
   filter(reg1 == 3 & reg2 == 3) %>%
@@ -188,6 +199,189 @@ write.table(export_nodes, "../outputs/gephi_illustration_nodelist.csv", sep=";",
 
 
 
+###### industry-region level table of network indicators
+
+# baseline regression
+indreg_gr$log_emp18 <- log10(indreg_gr$total_emp18)
+indreg_gr$log_emp20 <- log10(indreg_gr$total_emp20)
+indreg_gr$emp_growth <- indreg_gr$log_emp20 / indreg_gr$log_emp18
+indreg_gr <- merge(
+  indreg_gr,
+  select(mne_df, ir_id, mne_count, mne_emp, mne_dom_25, mne_dom_50),
+  by = "ir_id",
+  all.x = TRUE,
+  all.y = FALSE
+)
+summary(m01 <- lm(emp_growth ~ mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr))
+
+
+create_industry_region_network <- function(el, weight_col)
+{
+  # key cols for the edgelist
+  cols <- c("indreg1", "indreg2", weight_col)
+  
+  # filter for weight
+  el <- el %>%
+    filter(!!as.symbol(weight_col) > 0)
+  
+  # create the network
+  net <- graph_from_data_frame(el[, ..cols], directed = TRUE)
+  
+  return(net)
+}
+
+
+# full industry-region network
+io_irnet <- create_industry_region_network(ir_el, weight_col = "nr_buy_ties")
+full_io_irnet_table <- data.table(
+  indreg_id = V(io_irnet)$name,
+  full_degree = degree(io_irnet, mode = "all"),
+  full_degree_cent = degree(io_irnet, mode = "all", normalized = TRUE),
+  full_indegree = degree(io_irnet, mode = "in"),
+  full_indegree_cent = degree(io_irnet, mode = "in", normalized = TRUE),
+  full_outdegree = degree(io_irnet, mode = "out"),
+  full_outdegree_cent = degree(io_irnet, mode = "out", normalized = TRUE)
+)
+lab_irnet <- create_industry_region_network(ir_el, weight_col = "nr_labor_ties")
+full_lab_irnet_table <- data.table(
+  indreg_id = V(lab_irnet)$name,
+  full_degree = degree(lab_irnet, mode = "all"),
+  full_degree_cent = degree(lab_irnet, mode = "all", normalized = TRUE),
+  full_indegree = degree(lab_irnet, mode = "in"),
+  full_indegree_cent = degree(lab_irnet, mode = "in", normalized = TRUE),
+  full_outdegree = degree(lab_irnet, mode = "out"),
+  full_outdegree_cent = degree(lab_irnet, mode = "out", normalized = TRUE)
+)
+full_network_table <- merge(
+  full_io_irnet_table,
+  full_lab_irnet_table,
+  by = "indreg_id",
+  all.x = TRUE,
+  all.y = TRUE,
+  suffixes = c("_io", "_lab")
+)
+
+
+# regressions
+indreg_gr2 <- merge(
+  indreg_gr,
+  full_network_table,
+  by.x = "ir_id",
+  by.y = "indreg_id",
+  all.x = TRUE,
+  all.y = FALSE
+)
+summary(m02 <- lm(emp_growth ~ full_degree_cent_io + full_degree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr2))
+summary(m02in <- lm(emp_growth ~ full_indegree_cent_io + full_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr2))
+summary(m02out <- lm(emp_growth ~ full_outdegree_cent_io + full_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr2))
+
+
+
+# local industry-region network
+local_io_irnet <- create_industry_region_network(
+  subset(ir_el, reg1 == reg2),
+  weight_col = "nr_buy_ties"
+)
+local_io_irnet_table <- data.table(
+  indreg_id = V(local_io_irnet)$name,
+  local_degree = degree(local_io_irnet, mode = "all"),
+  local_degree_cent = degree(local_io_irnet, mode = "all", normalized = TRUE),
+  local_indegree = degree(local_io_irnet, mode = "in"),
+  local_indegree_cent = degree(local_io_irnet, mode = "in", normalized = TRUE),
+  local_outdegree = degree(local_io_irnet, mode = "out"),
+  local_outdegree_cent = degree(local_io_irnet, mode = "out", normalized = TRUE)
+)
+local_lab_irnet <- create_industry_region_network(
+  subset(ir_el, reg1 == reg2),
+  weight_col = "nr_labor_ties"
+)
+local_lab_irnet_table <- data.table(
+  indreg_id = V(local_lab_irnet)$name,
+  local_degree = degree(local_lab_irnet, mode = "all"),
+  local_degree_cent = degree(local_lab_irnet, mode = "all", normalized = TRUE),
+  local_indegree = degree(local_lab_irnet, mode = "in"),
+  local_indegree_cent = degree(local_lab_irnet, mode = "in", normalized = TRUE),
+  local_outdegree = degree(local_lab_irnet, mode = "out"),
+  local_outdegree_cent = degree(local_lab_irnet, mode = "out", normalized = TRUE)
+)
+local_network_table <- merge(
+  local_io_irnet_table,
+  local_lab_irnet_table,
+  by = "indreg_id",
+  all.x = TRUE,
+  all.y = TRUE,
+  suffixes = c("_io", "_lab")
+)
+
+
+# regressions
+indreg_gr3 <- merge(
+  indreg_gr,
+  local_network_table,
+  by.x = "ir_id",
+  by.y = "indreg_id",
+  all.x = TRUE,
+  all.y = FALSE
+)
+summary(m03 <- lm(emp_growth ~ local_degree_cent_io + local_degree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr3))
+summary(m03in <- lm(emp_growth ~ local_indegree_cent_io + local_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr3))
+summary(m03out <- lm(emp_growth ~ local_outdegree_cent_io + local_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr3))
+
+
+
+# local RCA industry-region network
+rca_io_irnet <- create_industry_region_network(
+  subset(ir_el, reg1 == reg2 & rca011 == 1 & rca012 == 1),
+  weight_col = "nr_buy_ties"
+)
+rca_io_irnet_table <- data.table(
+  indreg_id = V(rca_io_irnet)$name,
+  rca_degree = degree(rca_io_irnet, mode = "all"),
+  rca_degree_cent = degree(rca_io_irnet, mode = "all", normalized = TRUE),
+  rca_indegree = degree(rca_io_irnet, mode = "in"),
+  rca_indegree_cent = degree(rca_io_irnet, mode = "in", normalized = TRUE),
+  rca_outdegree = degree(rca_io_irnet, mode = "out"),
+  rca_outdegree_cent = degree(rca_io_irnet, mode = "out", normalized = TRUE)
+)
+rca_lab_irnet <- create_industry_region_network(
+  subset(ir_el, reg1 == reg2 & rca011 == 1 & rca012 == 1),
+  weight_col = "nr_labor_ties"
+)
+rca_lab_irnet_table <- data.table(
+  indreg_id = V(rca_lab_irnet)$name,
+  rca_degree = degree(rca_lab_irnet, mode = "all"),
+  rca_degree_cent = degree(rca_lab_irnet, mode = "all", normalized = TRUE),
+  rca_indegree = degree(rca_lab_irnet, mode = "in"),
+  rca_indegree_cent = degree(rca_lab_irnet, mode = "in", normalized = TRUE),
+  rca_outdegree = degree(rca_lab_irnet, mode = "out"),
+  rca_outdegree_cent = degree(rca_lab_irnet, mode = "out", normalized = TRUE)
+)
+rca_network_table <- merge(
+  rca_io_irnet_table,
+  rca_lab_irnet_table,
+  by = "indreg_id",
+  all.x = TRUE,
+  all.y = TRUE,
+  suffixes = c("_io", "_lab")
+)
+
+
+
+# regressions
+indreg_gr4 <- merge(
+  indreg_gr,
+  rca_network_table,
+  by.x = "ir_id",
+  by.y = "indreg_id",
+  all.x = TRUE,
+  all.y = FALSE
+)
+summary(m04 <- lm(emp_growth ~ rca_degree_cent_io + rca_degree_cent_lab + mne_dom_25 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
+summary(m04in <- lm(emp_growth ~ rca_indegree_cent_io + rca_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
+summary(m04out <- lm(emp_growth ~ rca_outdegree_cent_io + rca_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
+
+  
+
 
 
 
@@ -207,7 +401,6 @@ rca_to_net <- merge(
 )
 rca_to_net[is.na(rca_to_net)==1] <- 0
 rca_to_net$rca_emp_color <- ifelse(rca_to_net$rca01 ==1, "darkgreen", "grey")
-
 
 
 # plot the network -- nicely
