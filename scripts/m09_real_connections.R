@@ -152,6 +152,42 @@ write.table(rn_table, "../outputs/region_network_descriptive.csv", sep=";", row.
 
 
 
+###### gephi export ######
+export_el <- ir_el %>%
+  filter(reg1 == 3 & reg2 == 3) %>%
+  select(ind1, ind2, nr_buy_ties, nr_labor_ties) %>%
+  rename(Source = ind1, Target = ind2) %>%
+  data.table()
+
+export_nodes <- unique(data.table(Id = unique(c(export_el$Source, export_el$Target))))
+export_nodes <- merge(
+  export_nodes,
+  unique(select(filter(ir_el, reg1 == 3), ind1, rca011, mne_count1)),
+  by.x = "Id",
+  by.y = "ind1",
+  all.x = TRUE,
+  all.y = FALSE
+)
+export_nodes <- merge(
+  export_nodes,
+  unique(select(filter(ir_el, reg2 == 3), ind2, rca012, mne_count2)),
+  by.x = "Id",
+  by.y = "ind2",
+  all.x = TRUE,
+  all.y = FALSE
+)
+export_nodes$rca <- ifelse(export_nodes$rca011 == 1 | export_nodes$rca012 == 1, 1, 0)
+export_nodes$mne <- ifelse(export_nodes$mne_count1 > 0 | export_nodes$mne_count2 > 0, 1, 0)
+export_nodes <- select(export_nodes, Id, rca, mne)
+
+
+write.table(subset(export_el, nr_buy_ties > 0), "../outputs/gephi_illustration_buy_edgelist.csv", sep=";", row.names = FALSE)
+write.table(subset(export_el, nr_labor_ties > 0), "../outputs/gephi_illustration_labor_edgelist.csv", sep=";", row.names = FALSE)
+write.table(export_nodes, "../outputs/gephi_illustration_nodelist.csv", sep=";", row.names = FALSE)
+
+
+
+
 
 
 
