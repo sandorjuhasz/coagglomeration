@@ -7,6 +7,7 @@ library(dplyr)
 library(igraph)
 library(ggraph)   
 library(graphlayouts)
+library(stargazer)
 
 # parameters
 reg <- "megye"
@@ -205,6 +206,7 @@ write.table(export_nodes, "../outputs/gephi_illustration_nodelist.csv", sep=";",
 indreg_gr$log_emp18 <- log10(indreg_gr$total_emp18)
 indreg_gr$log_emp20 <- log10(indreg_gr$total_emp20)
 indreg_gr$emp_growth <- indreg_gr$log_emp20 / indreg_gr$log_emp18
+indreg_gr$log_nr_firms18 <- log10(indreg_gr$nr_firms18)
 indreg_gr <- merge(
   indreg_gr,
   select(mne_df, ir_id, mne_count, mne_emp, mne_dom_25, mne_dom_50),
@@ -271,9 +273,29 @@ indreg_gr2 <- merge(
   all.x = TRUE,
   all.y = FALSE
 )
-summary(m02 <- lm(emp_growth ~ full_degree_cent_io + full_degree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr2))
-summary(m02in <- lm(emp_growth ~ full_indegree_cent_io + full_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr2))
-summary(m02out <- lm(emp_growth ~ full_outdegree_cent_io + full_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr2))
+summary(m02 <- lm(emp_growth ~ full_degree_cent_io + full_degree_cent_lab + mne_dom_25 + rca01 + log_emp18 + log_nr_firms18 + as.factor(reg), data = indreg_gr2))
+summary(m02in <- lm(emp_growth ~ full_indegree_cent_io + full_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + log_nr_firms18 + as.factor(reg), data = indreg_gr2))
+summary(m02out <- lm(emp_growth ~ full_outdegree_cent_io + full_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + log_nr_firms18 + as.factor(reg), data = indreg_gr2))
+
+stargazer(m02, m02in, m02out,
+          omit = c("reg"),
+          omit.labels = ("Region FE"),
+          omit.stat=c("f", "ser"),
+          dep.var.labels = "Employment growth 2020-2018",
+          dep.var.caption = "",
+          covariate.labels = c("IO degree cent",
+                               "Labor degree cent",
+                               "IO IN degree cent",
+                               "Labor IN degree cent",
+                               "IO OUT degree cent",
+                               "Labor OUT degree cent",
+                               "MNE dominance",
+                               "RCA 0/1",
+                               "Log emp 2018",
+                               "Log nr firms 2018"),
+          out="../outputs/growth_regression_m02.html")
+
+
 
 
 
@@ -327,6 +349,28 @@ summary(m03 <- lm(emp_growth ~ local_degree_cent_io + local_degree_cent_lab + mn
 summary(m03in <- lm(emp_growth ~ local_indegree_cent_io + local_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr3))
 summary(m03out <- lm(emp_growth ~ local_outdegree_cent_io + local_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr3))
 
+stargazer(m03, m03in, m03out,
+          omit = c("reg"),
+          omit.labels = ("Region FE"),
+          omit.stat=c("f", "ser"),
+          dep.var.labels = "Employment growth 2020-2018",
+          dep.var.caption = "",
+          covariate.labels = c("Local IO degree cent",
+                               "Local labor degree cent",
+                               "Local IO IN degree cent",
+                               "Local labor IN degree cent",
+                               "Local IO OUT degree cent",
+                               "Local labor OUT degree cent",
+                               "MNE dominance",
+                               "RCA 0/1",
+                               "Log emp 2018",
+                               "Log nr firms 2018"),
+          out="../outputs/growth_regression_m03.html")
+
+
+
+
+
 
 
 # local RCA industry-region network
@@ -376,11 +420,30 @@ indreg_gr4 <- merge(
   all.x = TRUE,
   all.y = FALSE
 )
+indreg_gr4 <- subset(indreg_gr4, rca01 == 1)
 summary(m04 <- lm(emp_growth ~ rca_degree_cent_io + rca_degree_cent_lab + mne_dom_25 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
-summary(m04in <- lm(emp_growth ~ rca_indegree_cent_io + rca_indegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
-summary(m04out <- lm(emp_growth ~ rca_outdegree_cent_io + rca_outdegree_cent_lab + mne_dom_25 + rca01 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
+summary(m04in <- lm(emp_growth ~ rca_indegree_cent_io + rca_indegree_cent_lab + mne_dom_25 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
+summary(m04out <- lm(emp_growth ~ rca_outdegree_cent_io + rca_outdegree_cent_lab + mne_dom_25 + log_emp18 + nr_firms18 + as.factor(reg), data = indreg_gr4))
 
-  
+
+stargazer(m04, m04in, m04out,
+          omit = c("reg"),
+          omit.labels = ("Region FE"),
+          omit.stat=c("f", "ser"),
+          dep.var.labels = "Employment growth 2020-2018 RCA == 1",
+          dep.var.caption = "",
+          covariate.labels = c("IO degree cent to RCA",
+                               "Labor degree cent to RCA",
+                               "IO IN degree cent to RCA",
+                               "Labor IN degree cent to RCA",
+                               "IO OUT degree cent to RCA",
+                               "Labor OUT degree cent to RCA",
+                               "MNE dominance",
+                               "Log emp 2018",
+                               "Log nr firms 2018"),
+          out="../outputs/growth_regression_m04.html")
+
+
 
 
 
