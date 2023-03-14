@@ -5,31 +5,25 @@
 
 library(data.table)
 library(dplyr)
-library(foreign)
-library(igraph)
-library(Matrix)
-#library(mefa4)
-library(reshape2)
 library(stargazer)
 library(ivreg)
 library(lmtest)
 library(sandwich)
-source("../scripts/m00_functions.R")
+#source("../scripts/m00_functions.R")
 
 
 # parameters
 reg <- "megye"
 ind <- 3
 ye <- 18
-manufacturing_focus <- FALSE
 
 # read data -- prepared in m01_data_prep.R
-mdf3 <- fread("../outputs/m01_data_output.csv", sep = ";")
+#mdf3 <- fread("../outputs/m01_data_output.csv", sep = ";")
 #mdf3 <- fread("../outputs/m01_data_output_manufacturing_only.csv", sep = ";")
 #mdf3 <- fread("../outputs/m01_data_output_services_only.csv", sep = ";")
 #mdf3 <- fread("../outputs/m01_data_output_manufacturing_and_services.csv", sep = ";")
 #mdf3 <- fread("../outputs/m01_data_output_jaras_version.csv", sep = ";")
-mdf3 <- fread("m01_data_output_OC.csv", sep = ";")
+mdf3 <- fread("../data/oc_2023_march_labor/m01_data_output_OC.csv", sep = ";")
 
 # remove self loops and repeated pairs
 mdf3 <- subset(mdf3, ind1 < ind2)
@@ -40,11 +34,8 @@ mdf3$log_nr_firms2 <- log10(mdf3$nr_firms2)
 
 
 # variable manipulation -- transactions between industries
-mdf3$tmax_indind[is.na(mdf3$tmax_indind) == 1] <- 0
-mdf3$tmax_indind[is.infinite(mdf3$tmax_indind) == 1] <- 0
-mdf3$swe_tra_log_value <- log10(mdf3$swe_tra_value + 0.1)
-
 mdf3$log_undir_value <- log10(mdf3$undir_value)
+mdf3$log_undir_swe_io <- log10(mdf3$undir_swe_io)
 mdf3$log_undir_value[is.infinite(mdf3$log_undir_value) == 1] <- 0
 mdf3$log_undir_swe_io[is.infinite(mdf3$log_undir_swe_io) == 1] <- 0
 
@@ -81,7 +72,10 @@ stargazer(egk_m01,
           out = "../outputs/regression_outputs/egk_undir_full_jaras_version.html")
 
 
-summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
+# interaction
+summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
+summary(iv_egk_m03 <- ivreg::ivreg(egk_coagg ~ log_undir_value * hun_sr_norm | log_undir_swe_io * swe_sr_norm, data = mdf3))
+
 
 
 # baseline models -- coagg
