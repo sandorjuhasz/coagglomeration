@@ -9,6 +9,7 @@ library(stargazer)
 library(ivreg)
 library(lmtest)
 library(sandwich)
+library(interplot)
 #source("../scripts/m00_functions.R")
 
 
@@ -72,9 +73,13 @@ stargazer(egk_m01,
           out = "../outputs/regression_outputs/egk_undir_full_jaras_version.html")
 
 
-# interaction
+# interaction models
 summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
-summary(iv_egk_m03 <- ivreg::ivreg(egk_coagg ~ log_undir_value * hun_sr_norm | log_undir_swe_io * swe_sr_norm, data = mdf3))
+interplot(m = egk_inter, var1 = "hun_sr_norm", var2 = "log_undir_value") +
+  xlab("Log transaction value") +
+  ylab("Estimated coefficient for\nskill relatedness") +
+  theme_bw()
+#summary(iv_egk_m03 <- ivreg::ivreg(egk_coagg ~ log_undir_value * hun_sr_norm | log_undir_swe_io * swe_sr_norm, data = mdf3))
 
 
 
