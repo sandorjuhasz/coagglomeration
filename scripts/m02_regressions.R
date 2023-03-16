@@ -10,6 +10,7 @@ library(ivreg)
 library(lmtest)
 library(sandwich)
 library(interplot)
+library(cowplot)
 #source("../scripts/m00_functions.R")
 
 
@@ -75,11 +76,34 @@ stargazer(egk_m01,
 
 # interaction models
 summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
-interplot(m = egk_inter, var1 = "hun_sr_norm", var2 = "log_undir_value") +
-  xlab("Log transaction value") +
+
+# interplot 1 
+title <- "interplot_SR_transactions"
+file_name <- paste0("../figures/", title, ".png")
+png(file_name, width=800, height=600, units = 'px')
+
+interplot(m = egk_inter, var1 = "hun_sr_norm", var2 = "log_undir_value", size=3) +
+  xlab("Transaction value (log)") +
   ylab("Estimated coefficient for\nskill relatedness") +
-  theme_bw()
-#summary(iv_egk_m03 <- ivreg::ivreg(egk_coagg ~ log_undir_value * hun_sr_norm | log_undir_swe_io * swe_sr_norm, data = mdf3))
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
+dev.off()
+
+
+# interplot 2
+title <- "interplot_transactions_SR"
+file_name <- paste0("../figures/", title, ".png")
+png(file_name, width=800, height=600, units = 'px')
+
+interplot(m = egk_inter, var1 = "log_undir_value", var2 = "hun_sr_norm", size=3) +
+  xlab("Skill relatedness") +
+  ylab("Estimated coefficient for\ntransaction value (log)") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
+dev.off()
 
 
 
