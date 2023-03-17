@@ -5,7 +5,7 @@
 library(data.table)
 library(dplyr)
 library(igraph)
-
+library(infotheo)
 
 # parameters
 
@@ -50,7 +50,9 @@ ir_el <- rename(ir_el, reg_name1 = megye_nev1, reg_name2 = megye_nev2)
 
 ###### network inside regions ######
 
-create_regional_network <- function(el, reg, weight, rca_filter){
+# function to create regional networks -- from industry-region edgelist
+create_regional_network <- function(el, reg, weight, rca_filter)
+{
   # key cols for the edgelist
   cols <- c("ind1", "ind2", weight)
   
@@ -75,12 +77,10 @@ create_regional_network <- function(el, reg, weight, rca_filter){
   return(net)
 }
 
-# different network version for an example region
-io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE)
-lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE)
 
 # function for Jaccard index -- between igraph networks
-jaccard_index <- function(g1, g2) {
+jaccard_index <- function(g1, g2)
+{
   g1 <- get.adjacency(g1)
   g1[g1 > 0.001] <- 1
   g2<-get.adjacency(g2)
@@ -88,21 +88,100 @@ jaccard_index <- function(g1, g2) {
   A <- sum(g1 != g2) # edges that changed (0->1 and 1->0)
   B <- sum(g1 * g2) # edges that have a 1 in M1 and 1 in M2, so stayed the same (1->1)
   
-  return(round(B / sum(A, B), digits = 2)) # the ratio of stable ties ties (B), compared to all ties who change (A) + stable ties (B)
+  return(round(B / sum(A, B), digits = 3)) # the ratio of stable ties ties (B), compared to all ties who change (A) + stable ties (B)
   on.exit(rm(A,B))
 }
 
 
-full_graph <- make_empty_graph() %>%
-  add_vertices(length(unique(c(V(io_graph)$name, V(lab_graph)$name))))
-V(full_graph)$name <- unique(c(V(io_graph)$name, V(lab_graph)$name))
+# function to compare two graphs through Jaccard index
+jaccard_of_two_graphs <- function(g1, g2)
+{
+  # create full graph with all nodes
+  full_graph <- make_empty_graph() %>%
+    add_vertices(length(unique(c(V(g1)$name, V(g2)$name))))
+  V(full_graph)$name <- unique(c(V(g1)$name, V(g2)$name))
+  
+  # make the two networks have the same nodeset
+  g1_full <- union(g1, full_graph)
+  g2_full <- union(g2, full_graph)
+  
+  return(jaccard_index(g1_full, g2_full))
+}
 
-io_full <- union(io_graph, full_graph)
-lab_full <- union(lab_graph, full_graph)
+
+# different network version for an example region
+io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE)
+lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE)
+jaccard_of_two_graphs(io_graph, lab_graph)
 
 
-jaccard_index(io_full, lab_full)
+# for all regions
+regions <- unique(c(ir_el$reg1, ir_el$reg2))
+io_lab_jaccard <- c()
+for(r in 1:length(regions))
+{
+  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE)
+  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE)
+  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph)
+  
+}
+regions_jaccard_table <- data.table(regions, io_lab_jaccard)
 
+
+# function to create full edgelist for regions with different edge types
+multi_el <- function(g1, g2)
+{
+  # edgelist with all nodes present in graph1 and graph2
+  all_nodes <- unique(c(V(g1)$name, V(g2)$name))
+  full_el <- data.table(expand.grid(ind1 = all_nodes, ind2 = all_nodes))
+  
+  # io / lab edgelists
+  el1 <- data.table(get.edgelist(g1))
+  colnames(el1) <- c("ind1", "ind2")
+  el1$io_ties <- 1
+  el2 <- data.table(get.edgelist(g2))
+  colnames(el2) <- c("ind1", "ind2")
+  el2$lab_ties <- 1
+  
+  # merge lab
+  full_el <- merge(
+    full_el,
+    el1,
+    by = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  full_el <- merge(
+    full_el,
+    el2,
+    by = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  full_el[is.na(full_el)==1] <- 0
+  
+  return(full_el)
+}
+
+# use the two vectors to compute mutual information
+io_graph <- create_regional_network(ir_el, reg = 1, weight = "nr_buy_ties", rca_filter = FALSE)
+lab_graph <- create_regional_network(ir_el, reg = 1, weight = "nr_labor_ties", rca_filter = FALSE)
+full_el <- multi_el(io_graph, lab_graph)
+mutinformation(full_el$io_ties, full_el$lab_ties)
+
+
+# for all regions
+regions <- unique(c(ir_el$reg1, ir_el$reg2))
+io_lab_mutinform <- c()
+for(r in 1:length(regions))
+{
+  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE)
+  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE)
+  full_el <- multi_el(io_graph, lab_graph)
+  
+  io_lab_mutinform[r] <- mutinformation(full_el$io_ties, full_el$lab_ties)
+}
+regions_mutinform_table <- data.table(regions, io_lab_mutinform)
 
 
 
