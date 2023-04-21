@@ -49,7 +49,6 @@ mdf3$log_undir_swe_io[is.infinite(mdf3$log_undir_swe_io) == 1] <- 0
 mdf3$ind_pair_id <- paste0(mdf3$ind1, "-", mdf3$ind2)
 
 
-
 # baseline models -- EGK
 summary(egk_m01 <- lm(egk_coagg ~ log_undir_value, data = mdf3))
 summary(egk_m02 <- lm(egk_coagg ~ hun_sr_norm, data = mdf3))
@@ -161,6 +160,48 @@ stargazer(coeftest(iv_coagg_m04, vcov = vcovCL, cluster = ~ind_pair_id),
           out = "../outputs/regression_outputs/coagg_undir_full_model4_iv_clusterred_coeffs.txt")
 
 
+
+
+### MNE x coagg models
+
+summary(coagg_m01 <- lm(coagg ~ log_undir_value, data = mdf3))
+summary(coagg_m02 <- lm(coagg ~ hun_sr_norm, data = mdf3))
+summary(coagg_m03 <- lm(coagg ~ log_undir_value + hun_sr_norm, data = mdf3))
+summary(coagg_m04 <- lm(coagg ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
+
+summary(coagg_m05 <- lm(coagg ~ log_undir_swe_io, data = mdf3))
+summary(coagg_m06 <- lm(coagg ~ swe_sr_norm, data = mdf3))
+summary(coagg_m07 <- lm(coagg ~ log_undir_swe_io + swe_sr_norm, data = mdf3))
+summary(coagg_m08 <- lm(coagg ~ log_undir_swe_io + swe_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
+
+
+summary(coagg_mne_m01 <- lm(coagg_mne ~ log_undir_value, data = mdf3))
+summary(coagg_mne_m02 <- lm(coagg_mne ~ hun_sr_norm, data = mdf3))
+summary(coagg_mne_m03 <- lm(coagg_mne ~ log_undir_value + hun_sr_norm, data = mdf3))
+#summary(coagg_mne_m04 <- lm(coagg_mne ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
+
+
+summary(coagg_m03 <- lm(coagg ~ log_undir_value + hun_sr_norm, data = mdf3))
+summary(coagg_mne_m03 <- lm(coagg_mne ~ log_undir_value + hun_sr_norm, data = mdf3))
+summary(coagg_local_m03 <- lm(coagg_local ~ log_undir_value + hun_sr_norm, data = mdf3))
+summary(coagg_mixed_m03 <- lm(coagg_mne_local ~ log_undir_value + hun_sr_norm, data = mdf3))
+stargazer(
+  coagg_m03,
+  coagg_mne_m03,
+  coagg_local_m03,
+  coagg_mixed_m03,
+  omit.stat=c("f", "ser"),
+  #dep.var.labels = "Coefficient of variation",
+  dep.var.caption = "",
+  covariate.labels = c("IO connections", "Labor flow"),
+  out = "../outputs/regression_tables/coagg_mne_local_versions.html"
+)
+
+
+coeftest(coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+coeftest(coagg_mne_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+coeftest(coagg_local_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+coeftest(coagg_mixed_m03, vcov = vcovCL, cluster = ~ind_pair_id)
 
 
 
