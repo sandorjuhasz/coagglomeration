@@ -19,6 +19,13 @@ reg <- "megye"
 ind <- 3
 ye <- 18
 
+z_score <-function(column){
+  # z-score of a variable
+  new_var <- (column - mean(column, na.rm = TRUE)) / sd(column, na.rm = TRUE)
+  return(new_var)
+} 
+
+
 # read data -- prepared in m01_data_prep.R
 #mdf3 <- fread("../outputs/m01_data_output.csv", sep = ";")
 #mdf3 <- fread("../outputs/m01_data_output_manufacturing_only.csv", sep = ";")
@@ -41,6 +48,9 @@ mdf3$log_undir_swe_io <- log10(mdf3$undir_swe_io)
 mdf3$log_undir_value[is.infinite(mdf3$log_undir_value) == 1] <- 0
 mdf3$log_undir_swe_io[is.infinite(mdf3$log_undir_swe_io) == 1] <- 0
 
+#mdf3$log_coagg <- log10(mdf3$coagg + 0.01)
+#mdf3$zlog_coagg <- z_score(log10(mdf3$coagg + 0.01))
+#mdf3$z_coagg <- z_score(mdf3$coagg)
 
 # variable manipulation -- labor flow between industries
 #mdf3$log_undir_lab_value[is.infinite(mdf3$log_undir_lab_value) == 1] <- 0
