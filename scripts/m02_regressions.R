@@ -89,7 +89,7 @@ summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
 # interplot 1 
 title <- "interplot_SR_transactions"
 file_name <- paste0("../figures/", title, ".png")
-png(file_name, width=800, height=600, units = 'px')
+png(file_name, width=600, height=600, units = 'px')
 
 interplot(m = egk_inter, var1 = "hun_sr_norm", var2 = "log_undir_value", size=3) +
   xlab("Transaction value (log)") +
@@ -97,21 +97,21 @@ interplot(m = egk_inter, var1 = "hun_sr_norm", var2 = "log_undir_value", size=3)
   #theme_bw() +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
-  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
+  theme(axis.text = element_text(size=25), axis.title=element_text(size=30))
 dev.off()
 
 
 # interplot 2
 title <- "interplot_transactions_SR"
 file_name <- paste0("../figures/", title, ".png")
-png(file_name, width=800, height=600, units = 'px')
+png(file_name, width=600, height=600, units = 'px')
 
 interplot(m = egk_inter, var1 = "log_undir_value", var2 = "hun_sr_norm", size=3) +
   xlab("Skill relatedness") +
   ylab("Estimated coefficient for\ntransaction value (log)") +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
-  theme(axis.text = element_text(size=20), axis.title=element_text(size=25))
+  theme(axis.text = element_text(size=25), axis.title=element_text(size=30))
 dev.off()
 
 
