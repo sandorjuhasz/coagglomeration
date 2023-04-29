@@ -116,6 +116,24 @@ dev.off()
 
 
 
+
+# interaction -- quantiles
+mdf3$undir_value_q75 <- ifelse(
+  mdf3$log_undir_value > quantile(mdf3$log_undir_value)[4],
+  1,
+  0
+)
+mdf3$hun_sr_q75 <- ifelse(
+  mdf3$hun_sr_norm > quantile(mdf3$hun_sr_norm)[4],
+  1,
+  0
+)
+summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 + hun_sr_q75, data = mdf3))
+summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 * hun_sr_q75, data = mdf3))
+
+
+
+
 # baseline models -- coagg
 summary(coagg_m01 <- lm(coagg ~ log_undir_value, data = mdf3))
 summary(coagg_m02 <- lm(coagg ~ hun_sr_norm, data = mdf3))
