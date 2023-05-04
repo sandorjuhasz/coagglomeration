@@ -108,12 +108,12 @@ file_name <- paste0("../figures/", title, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
 interplot(m = egk_inter, var1 = "hun_sr_norm", var2 = "log_undir_value", size=3) +
-  xlab("Transaction value (log)") +
+  xlab("IO transactions") +
   ylab("Estimated coefficient for\nskill relatedness") +
   #theme_bw() +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
-  theme(axis.text = element_text(size=25), axis.title=element_text(size=30))
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
 dev.off()
 
 
@@ -124,10 +124,10 @@ png(file_name, width=600, height=600, units = 'px')
 
 interplot(m = egk_inter, var1 = "log_undir_value", var2 = "hun_sr_norm", size=3) +
   xlab("Skill relatedness") +
-  ylab("Estimated coefficient for\ntransaction value (log)") +
+  ylab("Estimated coefficient for\nIO transactions") +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
-  theme(axis.text = element_text(size=25), axis.title=element_text(size=30))
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
 dev.off()
 
 
