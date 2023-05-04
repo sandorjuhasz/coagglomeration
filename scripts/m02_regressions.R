@@ -85,6 +85,22 @@ stargazer(egk_m01,
 
 # interaction models
 summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
+summary(coagg_inter <- lm(coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
+
+mdf3$undir_value_q75 <- ifelse(
+  mdf3$log_undir_value > quantile(mdf3$log_undir_value)[4],
+  1,
+  0
+)
+mdf3$hun_sr_q75 <- ifelse(
+  mdf3$hun_sr_norm > quantile(mdf3$hun_sr_norm)[4],
+  1,
+  0
+)
+summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 + hun_sr_q75, data = mdf3))
+summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 * hun_sr_q75, data = mdf3))
+
+
 
 # interplot 1 
 title <- "interplot_SR_transactions"
@@ -115,21 +131,6 @@ interplot(m = egk_inter, var1 = "log_undir_value", var2 = "hun_sr_norm", size=3)
 dev.off()
 
 
-
-
-# interaction -- quantiles
-mdf3$undir_value_q75 <- ifelse(
-  mdf3$log_undir_value > quantile(mdf3$log_undir_value)[4],
-  1,
-  0
-)
-mdf3$hun_sr_q75 <- ifelse(
-  mdf3$hun_sr_norm > quantile(mdf3$hun_sr_norm)[4],
-  1,
-  0
-)
-summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 + hun_sr_q75, data = mdf3))
-summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 * hun_sr_q75, data = mdf3))
 
 
 
