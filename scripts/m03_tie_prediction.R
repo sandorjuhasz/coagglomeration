@@ -128,6 +128,41 @@ for(r in 1:length(regions))
 regions_jaccard_table <- data.table(regions, io_lab_jaccard)
 
 
+
+
+# create all possible region-region dataframe
+full_el <- data.table(expand.grid(region1 = regions, region2 = regions))
+
+
+r1 <- full_el$region1
+r2 <- full_el$region2
+io_lab_jaccard <- c()
+io_io_jaccard <- c()
+lab_lab_jaccard <- c()
+
+for(r in 1:(nrow(full_el)))
+{
+  io_graph <- create_regional_network(ir_el, reg = r1[r], weight = "nr_buy_ties", rca_filter = FALSE)
+  lab_graph <- create_regional_network(ir_el, reg = r2[r], weight = "nr_labor_ties", rca_filter = FALSE)
+  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph)
+  
+  io_graph2 <- create_regional_network(ir_el, reg = r2[r], weight = "nr_buy_ties", rca_filter = FALSE)
+  io_io_jaccard[r] <- jaccard_of_two_graphs(io_graph, io_graph2)
+  
+  lab_graph1 <- create_regional_network(ir_el, reg = r1[r], weight = "nr_labor_ties", rca_filter = FALSE)
+  lab_lab_jaccard[r] <- jaccard_of_two_graphs(lab_graph1, lab_graph)
+}
+
+full_el$jaccard_io_labor <- io_lab_jaccard
+full_el$jaccard_io_io <- io_io_jaccard
+full_el$jaccard_lab_lab <- lab_lab_jaccard
+
+# export
+write.table(full_el, "../outputs/region_region_jaccards.csv", sep=";", row.names = FALSE)
+
+
+
+
 # function to create full edgelist for regions with different edge types
 multi_el <- function(g1, g2)
 {
