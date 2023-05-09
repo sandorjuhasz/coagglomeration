@@ -6,6 +6,8 @@ library(data.table)
 library(dplyr)
 library(igraph)
 library(infotheo)
+library(ggplot2)
+library(cowplot)
 
 # parameters
 
@@ -257,5 +259,37 @@ for(r in 1:length(regions))
 }
 regions_mutinform_table <- data.table(regions, io_lab_mutinform)
 
+# histogram
+nuts3_codes <- region_codes %>%
+  select(
+    megye_kod,
+    megye_nev
+  ) %>%
+  unique() %>%
+  data.table()
+nuts3_codes <- nuts3_codes[1:20,]
 
+regions_mutinform_table <- merge(
+  regions_mutinform_table,
+  nuts3_codes,
+  by.x = "regions",
+  by.y = "megye_kod",
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+
+title <- "mutual_information_io_lab_nuts3"
+file_name <- paste0("../figures/", title, ".png")
+png(file_name, width=850, height=600, units = 'px')
+
+ggplot(regions_mutinform_table, aes(x=megye_nev, y=io_lab_mutinform)) + 
+  geom_bar(stat = "identity", color="black", fill="Blue") +
+  xlab("") +
+  ylab("Mutual information of \n IO and labor flow") +
+  #scale_y_log10(limits=c(1, 1000000), labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=20), axis.title=element_text(size=25)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+dev.off()
 
