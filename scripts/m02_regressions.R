@@ -34,6 +34,15 @@ z_score <-function(column){
 #mdf3 <- fread("../outputs/m01_data_output_jaras_version.csv", sep = ";")
 mdf3 <- fread("../data/oc_2023_march_labor/m01_data_output_OC.csv", sep = ";")
 
+
+# filter for manufacturing -- LATE setup
+mdf3 <- subset(
+  mdf3,
+  (ind1 >= 100 & ind1 <= 340) &
+  (ind2 >= 100 & ind2 <= 340)
+)
+
+
 # remove self loops and repeated pairs
 mdf3 <- subset(mdf3, ind1 < ind2)
 
@@ -229,6 +238,19 @@ stargazer(
   covariate.labels = c("IO connections", "Labor flow"),
   out = "../outputs/regression_tables/coagg_mne_local_versions.tex"
 )
+
+
+summary(iv_coagg_m03 <- ivreg::ivreg(coagg ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
+coff_m03 <- coeftest(iv_coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+summary(iv_coagg_mne_m03 <- ivreg::ivreg(coagg_mne ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
+coff_mne_m03 <- coeftest(iv_coagg_mne_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+summary(iv_coagg_local_m03 <- ivreg::ivreg(coagg_local ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
+coff_local_m03 <- coeftest(iv_coagg_local_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+summary(iv_coagg_mne_local_m03 <- ivreg::ivreg(coagg_mne_local ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
+coeff_mne_local_m03 <- coeftest(iv_coagg_mne_local_m03, vcov = vcovCL, cluster = ~ind_pair_id)
+
+stargazer(,
+          out = "../outputs/regression_outputs/coagg_undir_full_model3_iv_clusterred_coeffs.txt")
 
 
 coeftest(coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id)

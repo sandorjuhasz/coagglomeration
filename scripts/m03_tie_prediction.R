@@ -29,7 +29,7 @@ mne_df$ir_id <- paste0(mne_df$reg, "-", mne_df$ind)
 # add region names
 ir_el <- merge(
   ir_el,
-  unique(select(region_codes, megye_kod, megye_nev))[1:20],
+  unique(dplyr::select(region_codes, megye_kod, megye_nev))[1:20],
   by.x = "reg1",
   by.y = "megye_kod",
   all.x = TRUE,
@@ -37,7 +37,7 @@ ir_el <- merge(
 )
 ir_el <- merge(
   ir_el,
-  unique(select(region_codes, megye_kod, megye_nev))[1:20],
+  unique(dplyr::select(region_codes, megye_kod, megye_nev))[1:20],
   by.x = "reg2",
   by.y = "megye_kod",
   all.x = TRUE,
@@ -117,8 +117,22 @@ jaccard_of_two_graphs <- function(g1, g2, directed)
 
 
 # different network version for an example region
-io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE, directed = TRUE)
-lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE, directed = TRUE)
+io_graph <-
+  create_regional_network(
+    ir_el,
+    reg = 3,
+    weight = "nr_buy_ties",
+    rca_filter = FALSE,
+    directed = TRUE
+  )
+lab_graph <-
+  create_regional_network(
+    ir_el,
+    reg = 3,
+    weight = "nr_labor_ties",
+    rca_filter = FALSE,
+    directed = TRUE
+  )
 jaccard_of_two_graphs(io_graph, lab_graph, directed = TRUE)
 io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = TRUE)
 lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = TRUE)
@@ -131,8 +145,6 @@ jaccard_of_two_graphs(io_graph, lab_graph, directed = FALSE)
 io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = FALSE)
 lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = FALSE)
 jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = FALSE)
-
-
 
 
 
