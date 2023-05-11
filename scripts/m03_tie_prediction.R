@@ -53,8 +53,8 @@ ir_el <- rename(ir_el, reg_name1 = megye_nev1, reg_name2 = megye_nev2)
 ###### OVERLAP network inside regions ######
 
 # function to create regional networks -- from industry-region edgelist
-create_regional_network <- function(el, reg, weight, rca_filter)
-{
+
+create_regional_network <- function(el, reg, weight, rca_filter, directed){
   # key cols for the edgelist
   cols <- c("ind1", "ind2", weight)
   
@@ -66,18 +66,23 @@ create_regional_network <- function(el, reg, weight, rca_filter)
   {
     el <- el
   }
-
+  
   # filter for weight
   el <- el %>%
     filter(!!as.symbol(weight) > 0)
   
   # create the network
-  net <- graph_from_data_frame(el[(reg1 == reg & reg2 == reg), ..cols], directed = TRUE)
-  
-  # add RCA to network
+  if(directed == 1)
+  {
+    net <- graph_from_data_frame(el[(reg1 == reg & reg2 == reg), ..cols], directed = TRUE)
+  } else
+  {
+    net <- simplify(graph_from_data_frame(el[(reg1 == reg & reg2 == reg), ..cols], directed = FALSE))
+  }
   
   return(net)
 }
+
 
 
 # function for Jaccard index -- between igraph networks
@@ -96,10 +101,10 @@ jaccard_index <- function(g1, g2)
 
 
 # function to compare two graphs through Jaccard index
-jaccard_of_two_graphs <- function(g1, g2)
+jaccard_of_two_graphs <- function(g1, g2, directed)
 {
   # create full graph with all nodes
-  full_graph <- make_empty_graph() %>%
+  full_graph <- make_empty_graph(directed = directed) %>%
     add_vertices(length(unique(c(V(g1)$name, V(g2)$name))))
   V(full_graph)$name <- unique(c(V(g1)$name, V(g2)$name))
   
@@ -112,12 +117,23 @@ jaccard_of_two_graphs <- function(g1, g2)
 
 
 # different network version for an example region
-io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE)
-lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE)
-jaccard_of_two_graphs(io_graph, lab_graph)
-io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE)
-lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE)
-jaccard_of_two_graphs(io_graph_rca, lab_graph_rca)
+io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE, directed = TRUE)
+lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE, directed = TRUE)
+jaccard_of_two_graphs(io_graph, lab_graph, directed = TRUE)
+io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = TRUE)
+lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = TRUE)
+jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = TRUE)
+
+
+io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE, directed = FALSE)
+lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE, directed = FALSE)
+jaccard_of_two_graphs(io_graph, lab_graph, directed = FALSE)
+io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = FALSE)
+lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = FALSE)
+jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = FALSE)
+
+
+
 
 
 

@@ -58,7 +58,7 @@ ir_el <- rename(ir_el, reg_name1 = megye_nev1, reg_name2 = megye_nev2)
 
 ###### network inside regions ######
 
-create_regional_network <- function(el, reg, weight, rca_filter){
+create_regional_network <- function(el, reg, weight, rca_filter, directed){
   # key cols for the edgelist
   cols <- c("ind1", "ind2", weight)
   
@@ -75,8 +75,16 @@ create_regional_network <- function(el, reg, weight, rca_filter){
   el <- el %>%
     filter(!!as.symbol(weight) > 0)
   
+  if(directed == 1)
+  {
+    dir = TRUE
+  } else
+  {
+    dir = FALSE
+  }
+  
   # create the network
-  net <- graph_from_data_frame(el[(reg1 == reg & reg2 == reg), ..cols], directed = TRUE)
+  net <- graph_from_data_frame(el[(reg1 == reg & reg2 == reg), ..cols], directed = dir)
   
   # add RCA to network
   
@@ -84,10 +92,10 @@ create_regional_network <- function(el, reg, weight, rca_filter){
 }
 
 # different network version for an example region
-io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE)
-lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE)
-io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE)
-lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE)
+io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE, directed = TRUE)
+lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE, directed = TRUE)
+io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = TRUE)
+lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = TRUE)
 
 
 # graph stats for all regional networks
