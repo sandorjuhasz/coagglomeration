@@ -149,23 +149,50 @@ jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = FALSE)
 
 
 
-# for all regions
+# for all regions -- directed
 regions <- unique(c(ir_el$reg1, ir_el$reg2))
 io_lab_jaccard <- c()
 io_lab_jaccard_rca <- c()
 for(r in 1:length(regions))
 {
   # all industries
-  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE)
-  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE)
-  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph)
+  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE, directed = TRUE)
+  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE, directed = TRUE)
+  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph, directed = TRUE)
   
   # RCA industries
-  io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE)
-  lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE)
-  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca)
+  io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE, directed = TRUE)
+  lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE, directed = TRUE)
+  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = TRUE)
 }
 regions_jaccard_table <- data.table(regions, io_lab_jaccard, io_lab_jaccard_rca)
+
+
+
+
+# for all regions -- undirected
+regions <- unique(c(ir_el$reg1, ir_el$reg2))
+io_lab_jaccard <- c()
+io_lab_jaccard_rca <- c()
+io_density_rca <- c()
+lab_density_rca <- c()
+
+for(r in 1:length(regions))
+{
+  # all industries
+  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE, directed = FALSE)
+  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE, directed = FALSE)
+  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph, directed = FALSE)
+  
+  # RCA industries
+  io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE, directed = FALSE)
+  lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE, directed = FALSE)
+  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = FALSE)
+  io_density_rca[r] <- round(edge_density(io_graph_rca), 3)
+  lab_density_rca[r] <- round(edge_density(lab_graph), 3)
+}
+regions_jaccard_table <- data.table(regions, io_lab_jaccard, io_lab_jaccard_rca, io_density_rca, lab_density_rca)
+
 
 
 
