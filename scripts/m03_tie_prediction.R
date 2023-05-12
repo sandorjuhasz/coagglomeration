@@ -10,7 +10,8 @@ library(ggplot2)
 library(cowplot)
 
 # parameters
-
+dir <- FALSE
+rca_focus <- TRUE
 
 # data sources
 ir_el <- fread("../data/oc_2023_march_labor/m01_ir_ir_el_output_OC.csv")
@@ -122,84 +123,57 @@ io_graph <-
     ir_el,
     reg = 3,
     weight = "nr_buy_ties",
-    rca_filter = FALSE,
-    directed = TRUE
+    rca_filter = rca_focus,
+    directed = dir
   )
 lab_graph <-
   create_regional_network(
     ir_el,
     reg = 3,
     weight = "nr_labor_ties",
-    rca_filter = FALSE,
-    directed = TRUE
+    rca_filter = rca_focus,
+    directed = dir
   )
-jaccard_of_two_graphs(io_graph, lab_graph, directed = TRUE)
-io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = TRUE)
-lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = TRUE)
-jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = TRUE)
 
 
-io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = FALSE, directed = FALSE)
-lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = FALSE, directed = FALSE)
-jaccard_of_two_graphs(io_graph, lab_graph, directed = FALSE)
-io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = TRUE, directed = FALSE)
-lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = TRUE, directed = FALSE)
-jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = FALSE)
+jaccard_of_two_graphs(io_graph, lab_graph, directed = dir)
+io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = rca_focus, directed = dir)
+lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = rca_focus, directed = dir)
+jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = dir)
+
+
+io_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = rca_focus, directed = dir)
+lab_graph <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = rca_focus, directed = dir)
+jaccard_of_two_graphs(io_graph, lab_graph, directed = dir)
+io_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_buy_ties", rca_filter = rca_focus, directed = dir)
+lab_graph_rca <- create_regional_network(ir_el, reg = 3, weight = "nr_labor_ties", rca_filter = rca_focus, directed = dir)
+jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = dir)
 
 
 
 
-# for all regions -- directed
+# for all regions
 regions <- unique(c(ir_el$reg1, ir_el$reg2))
 io_lab_jaccard <- c()
 io_lab_jaccard_rca <- c()
 for(r in 1:length(regions))
 {
   # all industries
-  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE, directed = TRUE)
-  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE, directed = TRUE)
-  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph, directed = TRUE)
+  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE, directed = dir)
+  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE, directed = dir)
+  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph, directed = dir)
   
   # RCA industries
-  io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE, directed = TRUE)
-  lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE, directed = TRUE)
-  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = TRUE)
+  io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = rca_focus, directed = dir)
+  lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = rca_focus, directed = dir)
+  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = dir)
 }
 regions_jaccard_table <- data.table(regions, io_lab_jaccard, io_lab_jaccard_rca)
 
 
 
-
-# for all regions -- undirected
-regions <- unique(c(ir_el$reg1, ir_el$reg2))
-io_lab_jaccard <- c()
-io_lab_jaccard_rca <- c()
-io_density_rca <- c()
-lab_density_rca <- c()
-
-for(r in 1:length(regions))
-{
-  # all industries
-  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE, directed = FALSE)
-  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE, directed = FALSE)
-  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph, directed = FALSE)
-  
-  # RCA industries
-  io_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE, directed = FALSE)
-  lab_graph_rca <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE, directed = FALSE)
-  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca, directed = FALSE)
-  io_density_rca[r] <- round(edge_density(io_graph_rca), 3)
-  lab_density_rca[r] <- round(edge_density(lab_graph), 3)
-}
-regions_jaccard_table <- data.table(regions, io_lab_jaccard, io_lab_jaccard_rca, io_density_rca, lab_density_rca)
-
-
-
-
-
 # create all possible region-region dataframe
 full_el <- data.table(expand.grid(region1 = regions, region2 = regions))
-
 
 r1 <- full_el$region1
 r2 <- full_el$region2
@@ -207,51 +181,31 @@ io_lab_jaccard <- c()
 io_io_jaccard <- c()
 lab_lab_jaccard <- c()
 
-io_lab_jaccard_rca <- c()
-io_io_jaccard_rca <- c()
-lab_lab_jaccard_rca <- c()
-
 
 for(r in 1:(nrow(full_el)))
 {
   # IO and labor overlap
-  io_graph <- create_regional_network(ir_el, reg = r1[r], weight = "nr_buy_ties", rca_filter = FALSE)
-  lab_graph <- create_regional_network(ir_el, reg = r2[r], weight = "nr_labor_ties", rca_filter = FALSE)
-  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph)
+  io_graph <- create_regional_network(ir_el, reg = r1[r], weight = "nr_buy_ties", rca_filter = rca_focus, directed = dir)
+  lab_graph <- create_regional_network(ir_el, reg = r2[r], weight = "nr_labor_ties", rca_filter = rca_focus, directed = dir)
+  io_lab_jaccard[r] <- jaccard_of_two_graphs(io_graph, lab_graph, directed = dir)
   
   # IO and IO overlap
-  io_graph2 <- create_regional_network(ir_el, reg = r2[r], weight = "nr_buy_ties", rca_filter = FALSE)
-  io_io_jaccard[r] <- jaccard_of_two_graphs(io_graph, io_graph2)
+  io_graph2 <- create_regional_network(ir_el, reg = r2[r], weight = "nr_buy_ties", rca_filter = rca_focus, directed = dir)
+  io_io_jaccard[r] <- jaccard_of_two_graphs(io_graph, io_graph2, directed = dir)
 
   # labor and labor overlap
-  lab_graph1 <- create_regional_network(ir_el, reg = r1[r], weight = "nr_labor_ties", rca_filter = FALSE)
-  lab_lab_jaccard[r] <- jaccard_of_two_graphs(lab_graph1, lab_graph)
-  
-  # IO and labor overlap -- RCA 1 version
-  io_graph_rca <- create_regional_network(ir_el, reg = r1[r], weight = "nr_buy_ties", rca_filter = TRUE)
-  lab_graph_rca <- create_regional_network(ir_el, reg = r2[r], weight = "nr_labor_ties", rca_filter = TRUE)
-  io_lab_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, lab_graph_rca)
-  
-  # IO and IO overlap -- RCA 1 version
-  io_graph2_rca <- create_regional_network(ir_el, reg = r2[r], weight = "nr_buy_ties", rca_filter = TRUE)
-  io_io_jaccard_rca[r] <- jaccard_of_two_graphs(io_graph_rca, io_graph2_rca)
-  
-  # labor and labor overlap
-  lab_graph1_rca <- create_regional_network(ir_el, reg = r1[r], weight = "nr_labor_ties", rca_filter = TRUE)
-  lab_lab_jaccard_rca[r] <- jaccard_of_two_graphs(lab_graph1_rca, lab_graph_rca)
+  lab_graph1 <- create_regional_network(ir_el, reg = r1[r], weight = "nr_labor_ties", rca_filter = rca_focus, directed = dir)
+  lab_lab_jaccard[r] <- jaccard_of_two_graphs(lab_graph1, lab_graph, directed = dir)
 }
 
 full_el$jaccard_io_labor <- io_lab_jaccard
 full_el$jaccard_io_io <- io_io_jaccard
 full_el$jaccard_lab_lab <- lab_lab_jaccard
 
-full_el$jaccard_io_labor_rca <- io_lab_jaccard_rca
-full_el$jaccard_io_io_rca <- io_io_jaccard_rca
-full_el$jaccard_lab_lab_rca <- lab_lab_jaccard_rca
-
 
 # export
-write.table(full_el, "../outputs/region_region_jaccards.csv", sep=";", row.names = FALSE)
+write.table(full_el, "../outputs/region_region_jaccards_rca.csv", sep=";", row.names = FALSE)
+#write.table(full_el, "../outputs/region_region_jaccards.csv", sep=";", row.names = FALSE)
 
 
 
@@ -295,8 +249,8 @@ multi_el <- function(g1, g2)
 }
 
 # use the two vectors to compute mutual information
-io_graph <- create_regional_network(ir_el, reg = 1, weight = "nr_buy_ties", rca_filter = FALSE)
-lab_graph <- create_regional_network(ir_el, reg = 1, weight = "nr_labor_ties", rca_filter = FALSE)
+io_graph <- create_regional_network(ir_el, reg = 1, weight = "nr_buy_ties", rca_filter = FALSE, directed = TRUE)
+lab_graph <- create_regional_network(ir_el, reg = 1, weight = "nr_labor_ties", rca_filter = FALSE, directed = TRUE)
 full_el <- multi_el(io_graph, lab_graph)
 mutinformation(full_el$io_ties, full_el$lab_ties)
 
