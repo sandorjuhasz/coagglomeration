@@ -260,8 +260,8 @@ regions <- unique(c(ir_el$reg1, ir_el$reg2))
 io_lab_mutinform <- c()
 for(r in 1:length(regions))
 {
-  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = FALSE)
-  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = FALSE)
+  io_graph <- create_regional_network(ir_el, reg = r, weight = "nr_buy_ties", rca_filter = TRUE, directed = FALSE)
+  lab_graph <- create_regional_network(ir_el, reg = r, weight = "nr_labor_ties", rca_filter = TRUE, directed = FALSE)
   full_el <- multi_el(io_graph, lab_graph)
   
   io_lab_mutinform[r] <- mutinformation(full_el$io_ties, full_el$lab_ties)
@@ -276,7 +276,7 @@ nuts3_codes <- region_codes %>%
   ) %>%
   unique() %>%
   data.table()
-nuts3_codes <- nuts3_codes[1:20,]
+nuts3_codes <- nuts3_codes[1:20,]å
 
 regions_mutinform_table <- merge(
   regions_mutinform_table,
@@ -288,7 +288,7 @@ regions_mutinform_table <- merge(
 )
 
 
-title <- "mutual_information_io_lab_nuts3"
+title <- "mutual_information_io_lab_nuts3_rca"
 file_name <- paste0("../figures/", title, ".png")
 png(file_name, width=850, height=600, units = 'px')
 
