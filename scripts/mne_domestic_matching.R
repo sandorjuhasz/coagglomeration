@@ -94,8 +94,17 @@ cdf[is.na(cdf)==1] <- 0
 
 # fit a nearest neighbor
 test_sample <- cdf[1:500]
+test_sample$for_match <- seq(1, nrow(test_sample), 1)
 m01 <- matchit(mne01 ~ hely + emp + nace3d, method = "nearest", distance = "mahalanobis", data = test_sample)
 summary(m01)
+
+
+m.data1 <- match.data(m01, data = test_sample,
+                      distance = "prop.score")
+
+
+g.matches1 <- get_matches(m01, data = test_sample,
+                          distance = "prop.score")
 
 rows <- c(m01$match.matrix)
 test_sample[rows,"oo_cegj_sz"]
