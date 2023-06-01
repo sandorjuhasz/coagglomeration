@@ -89,25 +89,21 @@ cdf <- merge(
   all.y = FALSE
 )
 cdf[is.na(cdf)==1] <- 0
+cdf <- unique(cdf)
+
+
+# fit a nearest neighbor matching
+test_size <- 80000
+mdf <- cdf[1:test_size]
+m01 <- matchit(mne01 ~ megye + emp + nace3d, method = "nearest", distance = "mahalanobis", data = mdf)
+#summary(m01)
+
+# takes some time for large samples
+m_data <- match.data(m01, data = mdf, distance = "prop.score")
+#match_results <- get_matches(m01, data = mdf, distance = "prop.score")
+
+# m_data$subclass indicates the matched pairs
 
 
 
-# fit a nearest neighbor
-test_sample <- cdf[1:500]
-test_sample$for_match <- seq(1, nrow(test_sample), 1)
-m01 <- matchit(mne01 ~ hely + emp + nace3d, method = "nearest", distance = "mahalanobis", data = test_sample)
-summary(m01)
 
-
-m.data1 <- match.data(m01, data = test_sample,
-                      distance = "prop.score")
-
-
-g.matches1 <- get_matches(m01, data = test_sample,
-                          distance = "prop.score")
-
-rows <- c(m01$match.matrix)
-test_sample[rows,"oo_cegj_sz"]
-test_sample[52]
-test_sample[124]
-subset(test_sample, mne01 == 1)
