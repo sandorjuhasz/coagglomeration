@@ -110,6 +110,12 @@ summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 + hun_sr_q75, data = mdf3))
 summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 * hun_sr_q75, data = mdf3))
 
 
+# MNE / domestic interactions
+summary(coagg_inter <- lm(coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
+summary(coagg_inter <- lm(coagg_mne ~ log_undir_value * hun_sr_norm, data = mdf3))
+summary(coagg_inter <- lm(coagg_local ~ log_undir_value * hun_sr_norm, data = mdf3))
+summary(coagg_inter <- lm(coagg_mne_local ~ log_undir_value * hun_sr_norm, data = mdf3))
+
 
 # interplot 1 
 title <- "interplot_SR_transactions"
