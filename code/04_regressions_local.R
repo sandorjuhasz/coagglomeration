@@ -23,8 +23,39 @@ manuf_focus <- FALSE
 # file from OC
 mdf3 <- fread(paste0("../data/oc09_2023_aug/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
 
+
+# files from Sweden
+swe_io <- fread("../outputs/swe_io_2digit_nace.csv")
+swe_sr <- fread("../data/srnet_nat_3dig_avg_13_19.csv")
+
+
+# join Swedish data
+mdf3$ind1_2d <- as.integer(mdf3$ind1 / 10)
+mdf3$ind2_2d <- as.integer(mdf3$ind2 / 10)
+
+mdf3 <- merge(
+  mdf3,
+  swe_io,
+  by.x = c("ind1_2d", "ind2_2d"),
+  by.y = c("ind_2dig_i", "ind_2dig_j"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+mdf3 <- merge(
+  mdf3,
+  swe_sr,
+  by.x = c("ind1", "ind2"),
+  by.y = c("ind_i", "ind_j"),
+  all.x = TRUE,
+  all.y = FALSE,
+  suffixes = c("", "_swe")
+)
+
+
+
 # remove self loops and repeated pairs
 mdf3 <- subset(mdf3, ind1 < ind2)
+
 
 # variable manipulation -- for regressions
 mdf3$egk_coagg <- scale(mdf3$egk_coagg)
@@ -36,10 +67,13 @@ mdf3$coagg_porter_mne <- scale(mdf3$coagg_porter_mne)
 mdf3$coagg_porter_local <- scale(mdf3$coagg_porter_local)
 mdf3$coagg_porter_mne_local <- scale(mdf3$coagg_porter_mne_local)
 
+mdf3$lab_standard <- scale(mdf3$sr_norm)
+
 mdf3$log_nr_firms1 <- log10(mdf3$nr_firms1)
 mdf3$log_nr_firms2 <- log10(mdf3$nr_firms2)
 
-mdf3$lab_standard <- scale(mdf3$sr_norm)
+mdf3$labor01 <- ifelse(mdf3$sr_norm > 0, 1, 0)
+mdf3$io01 <- ifelse(mdf3$io_log_standard > quantile(mdf3$io_log_standard, na.rm = TRUE)[3], 1, 0)
 
 
 # drop rows with NAs -- create an equal sample
@@ -65,7 +99,7 @@ stargazer(egk_m01,
           egk_m03,
           egk_m04,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_baseline", version, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_baseline_", year, version, ".html"))
 
 
 # baseline models -- Porter
@@ -79,7 +113,7 @@ stargazer(porter_m01,
           porter_m03,
           porter_m04,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_porter_baseline", version, ".html"))
+          out = paste0("../outputs/regression_tables/local_porter_baseline_", year, version, ".html"))
 
 
 
@@ -92,13 +126,11 @@ summary(egk_mm01 <- lm(egk_coagg ~ io_log_standard + lab_standard, data = mdf3))
 summary(egk_mm02 <- lm(egk_coagg_mne ~ io_log_standard + lab_standard, data = mdf3))
 summary(egk_mm03 <- lm(egk_coagg_local ~ io_log_standard + lab_standard, data = mdf3))
 
-
-
 stargazer(egk_mm01,
           egk_mm02,
           egk_mm03,
-          omit.stat = c("f"),
-          out = "../outputs/regression_tables/local_egk_mne_domestic_exploration_manuf.html")
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_egk_mne_", year, version, ".html"))
 
 
 
@@ -109,68 +141,62 @@ summary(porter_mm02 <- lm(coagg_porter_mne ~ io_log_standard + lab_standard, dat
 summary(porter_mm03 <- lm(coagg_porter_local ~ io_log_standard + lab_standard, data = mdf3))
 summary(porter_mm04 <- lm(coagg_porter_mne_local ~ io_log_standard + lab_standard, data = mdf3))
 
-
-
-
 stargazer(porter_mm01,
           porter_mm02,
           porter_mm03,
           porter_mm04,
-          omit.stat = c("f"),
-          out = "../outputs/regression_tables/local_porter_mne_domestic_exploration_manuf.html")
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_porter_mne_", year, version, ".html"))
 
 
-
+# interactions for mne / domestic -- EGK
 summary(egk_inter01 <- lm(egk_coagg ~ io_log_standard * lab_standard, data = mdf3))
 summary(egk_inter02 <- lm(egk_coagg_mne ~ io_log_standard * lab_standard, data = mdf3))
 summary(egk_inter03 <- lm(egk_coagg_local ~ io_log_standard * lab_standard, data = mdf3))
-summary(po_inter01 <- lm(coagg_porter ~ io_log_standard * lab_standard, data = mdf3))
-summary(po_inter02 <- lm(coagg_porter_mne ~ io_log_standard * lab_standard, data = mdf3))
-summary(po_inter03 <- lm(coagg_porter_local ~ io_log_standard * lab_standard, data = mdf3))
-summary(po_inter04 <- lm(coagg_porter_mne_local ~ io_log_standard * lab_standard, data = mdf3))
-
 
 stargazer(egk_inter01,
           egk_inter02,
           egk_inter03,
-          omit.stat = c("f"),
-          out = "../outputs/regression_tables/local_egk_interaction_models.html")
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_egk_interaction_", year, version, ".html"))
+
+summary(egk_inter04 <- lm(egk_coagg ~ io01 * labor01, data = mdf3))
+summary(egk_inter05 <- lm(egk_coagg_mne ~ io01 * labor01, data = mdf3))
+summary(egk_inter06 <- lm(egk_coagg_local ~ io01 * labor01, data = mdf3))
+
+stargazer(egk_inter04,
+          egk_inter05,
+          egk_inter06,
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_egk_interaction01_", year, version, ".html"))
 
 
-stargazer(po_inter01,
-          po_inter02,
-          po_inter03,
-          po_inter04,
-          omit.stat = c("f"),
-          out = "../outputs/regression_tables/local_porter_interaction_models.html")
+# interactions for mne / domestic -- porter
+summary(p_inter01 <- lm(coagg_porter ~ io_log_standard * lab_standard, data = mdf3))
+summary(p_inter02 <- lm(coagg_porter_mne ~ io_log_standard * lab_standard, data = mdf3))
+summary(p_inter03 <- lm(coagg_porter_local ~ io_log_standard * lab_standard, data = mdf3))
+summary(p_inter04 <- lm(coagg_porter_mne_local ~ io_log_standard * lab_standard, data = mdf3))
+
+stargazer(p_inter01,
+          p_inter02,
+          p_inter03,
+          p_inter04,
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_porter_interaction_", year, version, ".html"))
+
+summary(p_inter05 <- lm(coagg_porter ~ io01 * labor01, data = mdf3))
+summary(p_inter06 <- lm(coagg_porter_mne ~ io01 * labor01, data = mdf3))
+summary(p_inter07 <- lm(coagg_porter_local ~ io01 * labor01, data = mdf3))
+summary(p_inter08 <- lm(coagg_porter_mne_local ~ io01 * labor01, data = mdf3))
+
+stargazer(p_inter05,
+          p_inter06,
+          p_inter07,
+          p_inter08,
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_porter_interaction01_", year, version, ".html"))
 
 
-
-
-
-# interaction models
-summary(egk_inter <- lm(egk_coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
-summary(coagg_inter <- lm(coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
-
-mdf3$undir_value_q75 <- ifelse(
-  mdf3$log_undir_value > quantile(mdf3$log_undir_value)[4],
-  1,
-  0
-)
-mdf3$hun_sr_q75 <- ifelse(
-  mdf3$hun_sr_norm > quantile(mdf3$hun_sr_norm)[4],
-  1,
-  0
-)
-summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 + hun_sr_q75, data = mdf3))
-summary(egk_du1 <- lm(egk_coagg ~ undir_value_q75 * hun_sr_q75, data = mdf3))
-
-
-# MNE / domestic interactions
-summary(coagg_inter <- lm(coagg ~ log_undir_value * hun_sr_norm, data = mdf3))
-summary(coagg_inter <- lm(coagg_mne ~ log_undir_value * hun_sr_norm, data = mdf3))
-summary(coagg_inter <- lm(coagg_local ~ log_undir_value * hun_sr_norm, data = mdf3))
-summary(coagg_inter <- lm(coagg_mne_local ~ log_undir_value * hun_sr_norm, data = mdf3))
 
 
 # interplot 1 
