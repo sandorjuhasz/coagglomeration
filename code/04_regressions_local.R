@@ -68,12 +68,20 @@ mdf3$coagg_porter_local <- scale(mdf3$coagg_porter_local)
 mdf3$coagg_porter_mne_local <- scale(mdf3$coagg_porter_mne_local)
 
 mdf3$lab_standard <- scale(mdf3$sr_norm)
+mdf3$lab_swe_standard <- scale(mdf3$sr_norm_swe)
+
+mdf3$io_swe_log10 <- log10(mdf3$value_corrected)
+mdf3$io_swe_log10[is.na(mdf3$io_swe_log10)==1] <- 0
+mdf3$io_swe_log10[is.infinite(mdf3$io_swe_log10)==1] <- 0
+mdf3$io_log_swe_standard <- scale(mdf3$io_swe_log10)
 
 mdf3$log_nr_firms1 <- log10(mdf3$nr_firms1)
 mdf3$log_nr_firms2 <- log10(mdf3$nr_firms2)
 
 mdf3$labor01 <- ifelse(mdf3$sr_norm > 0, 1, 0)
 mdf3$io01 <- ifelse(mdf3$io_log_standard > quantile(mdf3$io_log_standard, na.rm = TRUE)[3], 1, 0)
+
+mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
 
 
 # drop rows with NAs -- create an equal sample
@@ -99,7 +107,7 @@ stargazer(egk_m01,
           egk_m03,
           egk_m04,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_baseline_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_baseline_", year, "_", region, version, ".html"))
 
 
 # baseline models -- Porter
@@ -113,11 +121,20 @@ stargazer(porter_m01,
           porter_m03,
           porter_m04,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_porter_baseline_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_porter_baseline_", year, "_", region, version, ".html"))
 
 
 
 # set up the IV part here
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_log_standard + lab_standard | io_log_swe_standard + lab_swe_standard, data = mdf3))
+coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
+stargazer(coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id),
+          out = paste0("../outputs/regression_tables/local_egk_iv_", year, "_", region, version, ".html"))
+
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_log_standard + lab_standard | io_log_swe_standard + lab_swe_standard, data = mdf3))
+coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
+stargazer(coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id),
+          out = paste0("../outputs/regression_tables/local_porter_iv_", year, "_", region, version, ".html"))
 
 
 
@@ -130,7 +147,7 @@ stargazer(egk_mm01,
           egk_mm02,
           egk_mm03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_mne_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_mne_", year, "_", region, version, ".html"))
 
 
 
@@ -146,7 +163,7 @@ stargazer(porter_mm01,
           porter_mm03,
           porter_mm04,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_porter_mne_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_porter_mne_", year, "_", region, version, ".html"))
 
 
 # interactions for mne / domestic -- EGK
@@ -158,7 +175,7 @@ stargazer(egk_inter01,
           egk_inter02,
           egk_inter03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_interaction_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_interaction_", year, "_", region, version, ".html"))
 
 summary(egk_inter04 <- lm(egk_coagg ~ io01 * labor01, data = mdf3))
 summary(egk_inter05 <- lm(egk_coagg_mne ~ io01 * labor01, data = mdf3))
@@ -168,7 +185,7 @@ stargazer(egk_inter04,
           egk_inter05,
           egk_inter06,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_interaction01_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_interaction01_", year, "_", region, version, ".html"))
 
 
 # interactions for mne / domestic -- porter
@@ -182,7 +199,7 @@ stargazer(p_inter01,
           p_inter03,
           p_inter04,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_porter_interaction_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_porter_interaction_", year, "_", region, version, ".html"))
 
 summary(p_inter05 <- lm(coagg_porter ~ io01 * labor01, data = mdf3))
 summary(p_inter06 <- lm(coagg_porter_mne ~ io01 * labor01, data = mdf3))
@@ -194,7 +211,7 @@ stargazer(p_inter05,
           p_inter07,
           p_inter08,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_porter_interaction01_", year, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_porter_interaction01_", year, "_", region, version, ".html"))
 
 
 
