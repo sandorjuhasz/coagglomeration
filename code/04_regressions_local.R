@@ -17,6 +17,7 @@ region <- "nuts4"
 ind <- 3
 year <- 2017
 version <- ""
+manuf_focus <- FALSE
 
 
 # file from OC
@@ -43,10 +44,15 @@ mdf3$lab_standard <- scale(mdf3$sr_norm)
 
 # drop rows with NAs -- create an equal sample
 mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0)
-#test2 <- subset(mdf3, is.na()==0)
 
-mdf3 <- subset(mdf3, (ind1 > 100) & (ind1 < 350))
-mdf3 <- subset(mdf3, (ind2 > 100) & (ind2 < 350))
+if(manuf_focus == TRUE){
+  mdf3 <- subset(mdf3, (ind1 > 100) & (ind1 < 350))
+  mdf3 <- subset(mdf3, (ind2 > 100) & (ind2 < 350))
+} else
+{
+  mdf3
+}
+
 
 # baseline models -- EGK
 summary(egk_m01 <- lm(egk_coagg ~ io_log_standard, data = mdf3))
@@ -54,6 +60,30 @@ summary(egk_m02 <- lm(egk_coagg ~ lab_standard, data = mdf3))
 summary(egk_m03 <- lm(egk_coagg ~ io_log_standard + lab_standard, data = mdf3))
 summary(egk_m04 <- lm(egk_coagg ~ io_log_standard + lab_standard + log_nr_firms1 + log_nr_firms2, data = mdf3))
 
+stargazer(egk_m01,
+          egk_m02,
+          egk_m03,
+          egk_m04,
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_egk_baseline", version, ".html"))
+
+
+# baseline models -- Porter
+summary(porter_m01 <- lm(coagg_porter ~ io_log_standard, data = mdf3))
+summary(porter_m02 <- lm(coagg_porter ~ lab_standard, data = mdf3))
+summary(porter_m03 <- lm(coagg_porter ~ io_log_standard + lab_standard, data = mdf3))
+summary(porter_m04 <- lm(coagg_porter ~ io_log_standard + lab_standard + log_nr_firms1 + log_nr_firms2, data = mdf3))
+
+stargazer(porter_m01,
+          porter_m02,
+          porter_m03,
+          porter_m04,
+          omit.stat=c("f", "ser"),
+          out = paste0("../outputs/regression_tables/local_porter_baseline", version, ".html"))
+
+
+
+# set up the IV part here
 
 
 
