@@ -374,4 +374,3 @@ cor(mne_valid$coagg, mne_valid$coagg_local)
 cor(mne_valid$coagg, mne_valid$coagg_mne_local)
 
 
-
