@@ -12,7 +12,7 @@ swe_akm <- fread("../outputs/swe_io_2digit_nace.csv")
 colnames(hu_akm) <- c("ind_i", "ind_j", "f_ij")
 hu_akm$f_ij <- round(hu_akm$f_ij / 1000, 0)
 colnames(swe_akm) <- c("ind_i", "ind_j", "f_ij")
-
+swe_akm <- subset(swe_akm, f_ij >= 0)
 
 industries <- unique(c(hu_akm$ind_i, hu_akm$ind_j))
 length(industries)
@@ -37,6 +37,8 @@ hu_io_norm <-
   mutate(io_norm = (io - 1) / (io + 1)) %>%
   data.table()
 
+hu_io_norm$io[is.na(hu_io_norm$io) == 1] <- 0
+hu_io_norm$io_norm[is.na(hu_io_norm$io_norm) == 1] <- -1
 
 
 # produce raw SR network from national flows across 2013-2019, 2-digit industries
@@ -53,13 +55,8 @@ swe_io_norm <-
   mutate(io_norm = (io - 1) / (io + 1)) %>%
   data.table()
 
-swe_io_norm
-
-
-
-hu_io_norm$io[is.na(hu_io_norm$io) == 1] <- 0
-hu_io_norm$io_norm[is.na(hu_io_norm$io_norm) == 1] <- -1
-
+swe_io_norm$io[is.na(swe_io_norm$io) == 1] <- 0
+swe_io_norm$io_norm[is.na(swe_io_norm$io_norm) == 1] <- -1
 
 
 # get a complete nodelist as dataframe based on all nodes present in an edgelist.
@@ -106,7 +103,8 @@ add_eid <- function(elist_frame_df){
   elist_frame_df <-
     bind_rows(tech_df1, tech_df2) %>%
     distinct() %>%
-    arrange(.[1], .[2])
+    arrange(.[1], .[2]) %>%
+    data.table()
   
   
   return(elist_frame_df)
@@ -118,29 +116,44 @@ elist_frame <- get_elist_frame(nlist_frame)
 elist_frame <- add_eid(elist_frame)
 
 
-
-
-#make undirected
-elist2dig <-
+# make undirected
+hu_io_norm_full <-
   elist_frame %>%
   rename(ind_i = node_i, ind_j = node_j) %>%
-  #Merge in SR measures to edgelist frame. Both ind_i -> ind_j, and ind_j -> ind_i gets added this way.
-  left_join(srnet2dig, by = c("ind_i", "ind_j")) %>%
+  # merge in SR measures to edgelist frame. Both ind_i -> ind_j, and ind_j -> ind_i gets added this way.
+  left_join(hu_io_norm, by = c("ind_i", "ind_j")) %>%
   #make undirected
   arrange(eid, ind_i, ind_j) %>%
   group_by(eid) %>%
-  mutate(sr_norm = sum(sr_norm, na.rm = TRUE) / 2) %>%
-  mutate(tag_drop = ifelse(sum(is.na(sr)) == 2, 1, 0)) %>% # handle the twoway missings here
-  ungroup() %>%
+  mutate(io_norm = sum(io_norm, na.rm = TRUE) / 2) %>%
+  #mutate(tag_drop = ifelse(sum(is.na(sr)) == 2, 1, 0)) %>% # handle the twoway missings here
+  #ungroup() %>%
   #drop if edge is not identified either way, or loop
-  filter(ind_i != ind_j) %>%
-  filter(tag_drop != 1) %>%
+  #filter(ind_i != ind_j) %>%
+  #filter(tag_drop != 1) %>%
   #keep necessary variables
-  select(ind_i, ind_j, eid, sr_norm)
+  dplyr::select(ind_i, ind_j, eid, io_norm) %>%
+  data.table()
 
 
-
-
+# make undirected
+swe_io_norm_full <-
+  elist_frame %>%
+  rename(ind_i = node_i, ind_j = node_j) %>%
+  # merge in SR measures to edgelist frame. Both ind_i -> ind_j, and ind_j -> ind_i gets added this way.
+  left_join(swe_io_norm, by = c("ind_i", "ind_j")) %>%
+  #make undirected
+  arrange(eid, ind_i, ind_j) %>%
+  group_by(eid) %>%
+  mutate(io_norm = sum(io_norm, na.rm = TRUE) / 2) %>%
+  #mutate(tag_drop = ifelse(sum(is.na(sr)) == 2, 1, 0)) %>% # handle the twoway missings here
+  #ungroup() %>%
+  #drop if edge is not identified either way, or loop
+  #filter(ind_i != ind_j) %>%
+  #filter(tag_drop != 1) %>%
+  #keep necessary variables
+  dplyr::select(ind_i, ind_j, eid, io_norm) %>%
+  data.table()
 
 
 
