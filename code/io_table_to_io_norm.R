@@ -10,7 +10,7 @@ hu_akm <- fread("../data/io_external/io_elist_2018_hun.csv")
 #swe_akm <- fread("../data/io_external/io_elist_2016_swe.csv")
 swe_akm <- fread("../outputs/swe_io_2digit_nace.csv")
 colnames(hu_akm) <- c("ind_i", "ind_j", "f_ij")
-hu_akm$f_ij <- round(hu_akm$f_ij / 1000, 0)
+#hu_akm$f_ij <- round(hu_akm$f_ij / 1000, 0)
 colnames(swe_akm) <- c("ind_i", "ind_j", "f_ij")
 swe_akm <- subset(swe_akm, f_ij >= 0)
 

@@ -90,12 +90,23 @@ stargazer(egk_m01,
 
 
 # set up the IV part here
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ sr_norm | swe_sr_norm, data = mdf3))
+mdfsummary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
 coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
 #stargazer(coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id),
 #          out = paste0("../outputs/regression_tables/local_egk_iv_", year, "_", region, version, ".html"))
 
+
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_norm + sr_norm | swe_io_norm + swe_sr_norm, data = mdf3))
+
+summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard | swe_io_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ lab_standard | swe_lab_standard, data = mdf3))
 summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
+
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = subset(mdf3, (io_norm != -1) & (swe_io_norm != -1))))
+
 coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 #stargazer(coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id),
 #          out = paste0("../outputs/regression_tables/local_porter_iv_", year, "_", region, version, ".html"))
