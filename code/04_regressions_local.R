@@ -38,6 +38,11 @@ mdf3$coagg_porter_mne <- scale(mdf3$coagg_porter_mne)
 mdf3$coagg_porter_local <- scale(mdf3$coagg_porter_local)
 mdf3$coagg_porter_mne_local <- scale(mdf3$coagg_porter_mne_local)
 
+mdf3$coagg <- scale(mdf3$coagg)
+mdf3$coagg_mne <- scale(mdf3$coagg_mne)
+mdf3$coagg_local <- scale(mdf3$coagg_local)
+mdf3$coagg_mne_local <- scale(mdf3$coagg_mne_local)
+
 mdf3$io_standard <- scale(mdf3$io_norm)
 mdf3$swe_io_standard <- scale(mdf3$swe_io_norm)
 mdf3$lab_standard <- scale(mdf3$sr_norm)
@@ -207,128 +212,8 @@ dev.off()
 
 
 
-# baseline models -- coagg
-summary(coagg_m01 <- lm(coagg ~ log_undir_value, data = mdf3))
-summary(coagg_m02 <- lm(coagg ~ hun_sr_norm, data = mdf3))
-summary(coagg_m03 <- lm(coagg ~ log_undir_value + hun_sr_norm, data = mdf3))
-summary(coagg_m04 <- lm(coagg ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-
-summary(coagg_m05 <- lm(coagg ~ log_undir_swe_io, data = mdf3))
-summary(coagg_m06 <- lm(coagg ~ swe_sr_norm, data = mdf3))
-summary(coagg_m07 <- lm(coagg ~ log_undir_swe_io + swe_sr_norm, data = mdf3))
-summary(coagg_m08 <- lm(coagg ~ log_undir_swe_io + swe_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-
-
-stargazer(coagg_m01,
-          coagg_m02,
-          coagg_m03,
-          coagg_m04,
-          coagg_m05,
-          coagg_m06,
-          coagg_m07,
-          coagg_m08,
-          omit.stat = c("f"),
-          out = "../outputs/regression_outputs/coagg_undir_full.txt")
-
-
-
-# multivariates with IV
-summary(iv_egk_m03 <- ivreg::ivreg(egk_coagg ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
-coeftest(iv_egk_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-#stargazer(coeftest(iv_egk_m03, vcov = vcovCL, cluster = ~ind_pair_id),
-#          out = "../outputs/regression_outputs/egk_undir_full_model3_iv_clusterred_coeffs.txt")
-stargazer(coeftest(iv_egk_m03, vcov = vcovCL, cluster = ~ind_pair_id),
-          out = "../outputs/regression_outputs/egk_undir_full_model3_iv_clusterred_coeffs_jaras_version.html")
-
-
-summary(iv_egk_m04 <- ivreg::ivreg(egk_coagg ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2 | log_undir_swe_io + swe_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-coeftest(iv_egk_m04, vcov = vcovCL, cluster = ~ind_pair_id)
-#stargazer(coeftest(iv_egk_m04, vcov = vcovCL, cluster = ~ind_pair_id),
-#          out = "../outputs/regression_outputs/egk_undir_full_model4_iv_clusterred_coeffs.txt")
-stargazer(coeftest(iv_egk_m04, vcov = vcovCL, cluster = ~ind_pair_id),
-          out = "../outputs/regression_outputs/egk_undir_full_model4_iv_clusterred_coeffs_jaras_version.html")
-
-
-
-summary(iv_coagg_m03 <- ivreg::ivreg(coagg ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
-coeftest(iv_coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-stargazer(coeftest(iv_coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id),
-          out = "../outputs/regression_outputs/coagg_undir_full_model3_iv_clusterred_coeffs.txt")
-
-summary(iv_coagg_m04 <- ivreg::ivreg(coagg ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2 | log_undir_swe_io + swe_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-coeftest(iv_coagg_m04, vcov = vcovCL, cluster = ~ind_pair_id)
-stargazer(coeftest(iv_coagg_m04, vcov = vcovCL, cluster = ~ind_pair_id),
-          out = "../outputs/regression_outputs/coagg_undir_full_model4_iv_clusterred_coeffs.txt")
-
-
-
-
-### MNE x coagg models
-
-summary(coagg_m01 <- lm(coagg ~ log_undir_value, data = mdf3))
-summary(coagg_m02 <- lm(coagg ~ hun_sr_norm, data = mdf3))
-summary(coagg_m03 <- lm(coagg ~ log_undir_value + hun_sr_norm, data = mdf3))
-summary(coagg_m04 <- lm(coagg ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-
-summary(coagg_m05 <- lm(coagg ~ log_undir_swe_io, data = mdf3))
-summary(coagg_m06 <- lm(coagg ~ swe_sr_norm, data = mdf3))
-summary(coagg_m07 <- lm(coagg ~ log_undir_swe_io + swe_sr_norm, data = mdf3))
-summary(coagg_m08 <- lm(coagg ~ log_undir_swe_io + swe_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-
-
-summary(coagg_mne_m01 <- lm(coagg_mne ~ log_undir_value, data = mdf3))
-summary(coagg_mne_m02 <- lm(coagg_mne ~ hun_sr_norm, data = mdf3))
-summary(coagg_mne_m03 <- lm(coagg_mne ~ log_undir_value + hun_sr_norm, data = mdf3))
-#summary(coagg_mne_m04 <- lm(coagg_mne ~ log_undir_value + hun_sr_norm + log_nr_firms1 + log_nr_firms2, data = mdf3))
-
-
-summary(coagg_m03 <- lm(coagg ~ log_undir_value + hun_sr_norm, data = mdf3))
-summary(coagg_mne_m03 <- lm(coagg_mne ~ log_undir_value + hun_sr_norm, data = mdf3))
-summary(coagg_local_m03 <- lm(coagg_local ~ log_undir_value + hun_sr_norm, data = mdf3))
-summary(coagg_mixed_m03 <- lm(coagg_mne_local ~ log_undir_value + hun_sr_norm, data = mdf3))
-
-attr(mdf3, "names")[5:9] <- c("M_coagg", "EGK coagg", "M_coagg MNE", "M_coagg domestic", "M_coagg MNE x domestic")
-
-stargazer(
-  coagg_m03,
-  coagg_mne_m03,
-  coagg_local_m03,
-  coagg_mixed_m03,
-  omit.stat=c("f", "ser"),
-  #column.labels = c("M_coagg", "M_coagg", "M_coagg", "M_coagg"),
-  dep.var.labels = attr(mdf3, "model.varnames")[6:9],
-  dep.var.caption = c(""),
-  covariate.labels = c("IO connections", "Labor flow"),
-  out = "../outputs/regression_tables/coagg_mne_local_versions.tex"
-)
-
-
-summary(iv_coagg_m03 <- ivreg::ivreg(coagg ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
-coff_m03 <- coeftest(iv_coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-summary(iv_coagg_mne_m03 <- ivreg::ivreg(coagg_mne ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
-coff_mne_m03 <- coeftest(iv_coagg_mne_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-summary(iv_coagg_local_m03 <- ivreg::ivreg(coagg_local ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
-coff_local_m03 <- coeftest(iv_coagg_local_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-summary(iv_coagg_mne_local_m03 <- ivreg::ivreg(coagg_mne_local ~ log_undir_value + hun_sr_norm | log_undir_swe_io + swe_sr_norm, data = mdf3))
-coeff_mne_local_m03 <- coeftest(iv_coagg_mne_local_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-
-stargazer(,
-          out = "../outputs/regression_outputs/coagg_undir_full_model3_iv_clusterred_coeffs.txt")
-
-
-coeftest(coagg_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-coeftest(coagg_mne_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-coeftest(coagg_local_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-coeftest(coagg_mixed_m03, vcov = vcovCL, cluster = ~ind_pair_id)
-
-
-
-
-
-# correlation of coagg measures
-mne_valid <- subset(mdf3, is.na(coagg_mne) == 0)
-cor(mne_valid$coagg, mne_valid$coagg_mne)
-cor(mne_valid$coagg, mne_valid$coagg_local)
-cor(mne_valid$coagg, mne_valid$coagg_mne_local)
-
+# baseline models -- coagg -- NONSENSE
+summary(coagg_m01 <- lm(coagg ~ io_standard, data = mdf3))
+summary(coagg_m02 <- lm(coagg ~ lab_standard, data = mdf3))
+summary(coagg_m03 <- lm(coagg ~ io_standard + lab_standard, data = mdf3))
 
