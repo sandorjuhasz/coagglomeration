@@ -18,7 +18,7 @@ ind <- 3
 year <- 2017
 version <- ""
 manuf_focus <- FALSE
-
+io_iv_country_code <- "USA"
 
 # file from OC
 mdf3 <- fread(paste0("../data/oc10_2023_sep/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
@@ -54,6 +54,24 @@ mdf3$labor01 <- ifelse(mdf3$sr_norm > 0, 1, 0)
 mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
 
 
+# add IO IVs
+iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
+iv_el <- subset(iv_el, c_code == io_iv_country_code)
+
+mdf3$ind1_2d <- mdf3$ind1 %/% 10
+mdf3$ind2_2d <- mdf3$ind2 %/% 10
+
+mdf3 <- merge(
+  mdf3,
+  iv_el,
+  by.x = c("ind1_2d", "ind2_2d"),
+  by.y = c("ind1", "ind2"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+
+
 # drop rows with NAs -- create an equal sample
 mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
 
@@ -86,14 +104,21 @@ stargazer(egk_m01,
           porter_m02,
           porter_m03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/loca_egk_porter_baseline_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_porter_baseline_", year, "_", region, version, ".html"))
 
 
 # set up the IV part here
+summary(lm(io_standard ~ iv_io_standard, data = mdf3))
+summary(lm(io_standard ~ swe_io_standard, data = mdf3))
+
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | iv_io_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+
+
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ sr_norm | swe_sr_norm, data = mdf3))
-mdfsummary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
 coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
 #stargazer(coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id),
 #          out = paste0("../outputs/regression_tables/local_egk_iv_", year, "_", region, version, ".html"))

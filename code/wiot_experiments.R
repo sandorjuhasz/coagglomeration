@@ -42,7 +42,7 @@ for(c in 1:length(countries))
     separate(country_industry, into = c("c_code", "ind"), sep = 3, remove = FALSE) %>%
     mutate(ind = as.integer(ind)) %>%
     filter(ind <= 56) %>%
-    select(-country_industry) %>%
+    dplyr::select(-country_industry) %>%
     rename(ind1 = ind_code) %>%
     data.table()
 }
@@ -106,9 +106,27 @@ for(c in 1:length(countries))
     all.x = TRUE,
     all.y = FALSE
   )
+  el_list[[c]]$c_code <- countries[c]
 }
 el_list <- rbindlist(el_list)
 el_list$value[is.na(el_list$value)==1] <- 0
+
+
+# sr_norm style
+el_list <- el_list %>%
+  group_by(c_code, ind1) %>%
+    mutate(f_i = sum(value)) %>%
+  group_by(c_code, ind2) %>%
+    mutate(f_j = sum(value)) %>%
+  group_by(c_code) %>%
+    mutate(f = sum(value)) %>%
+    mutate(iv_io = value / ((f_i * f_j) / f)) %>%
+    mutate(iv_io_norm = (iv_io - 1) / (iv_io + 1)) %>%
+  ungroup() %>%
+  data.table()
+
+el_list$iv_io_norm[is.na(el_list$iv_io_norm)==1] <- -1
+
 
 
 # export
