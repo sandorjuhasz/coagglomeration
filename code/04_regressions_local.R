@@ -137,6 +137,7 @@ coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 #          out = paste0("../outputs/regression_tables/local_porter_iv_", year, "_", region, version, ".html"))
 
 
+
 # mne / domestic models -- EGK
 summary(egk_mm01 <- lm(egk_coagg ~ io_standard + lab_standard, data = mdf3))
 summary(egk_mm02 <- lm(egk_coagg_mne ~ io_standard + lab_standard, data = mdf3))
@@ -159,8 +160,39 @@ stargazer(porter_mm01,
           porter_mm02,
           porter_mm03,
           porter_mm04,
+          dep.var.labels = c("Porter coagg", "MNE-MNE coagg", "Dom-dom coagg", "MNE-dom coagg"),
+          dep.var.caption = "",
           omit.stat=c("f", "ser"),
+          column.sep.width = "10pt",
+          covariate.labels = c("IO connections",
+                               "Labor flow"),
           out = paste0("../outputs/regression_tables/local_porter_mne_", year, "_", region, version, ".html"))
+
+
+
+
+# interactions -- baseline -- EGK and Porter
+summary(inter01 <- lm(egk_coagg ~ io_standard * lab_standard, data = mdf3))
+summary(inter02 <- lm(coagg_porter ~ io_standard * lab_standard, data = mdf3))
+#summary(inter03 <- lm(egk_coagg ~ io01 * labor01, data = mdf3))
+#summary(inter04 <- lm(coagg_porter ~ io01 * labor01, data = mdf3))
+
+
+stargazer(inter01,
+          inter02,
+          dep.var.labels = c("EGK coagg", "Porter coagg"),
+          dep.var.caption = "",
+          omit.stat=c("f", "ser"),
+          column.sep.width = "10pt",
+          covariate.labels = c("IO connections",
+                               "Labor flow",
+                               "IO connections x Labor flow"),
+          out = paste0("../outputs/regression_tables/local_egk_porter_interacttion", year, "_", region, version, ".html"))
+
+
+
+
+
 
 
 # interactions for mne / domestic -- EGK
@@ -195,7 +227,13 @@ stargazer(p_inter01,
           p_inter02,
           p_inter03,
           p_inter04,
+          dep.var.caption = "",
           omit.stat=c("f", "ser"),
+          dep.var.labels = c("Porter coagg", "MNE-MNE coagg", "Dom-dom coagg", "MNE-dom coagg"),
+          column.sep.width = "10pt",
+          covariate.labels = c("IO connections",
+                               "Labor flow",
+                               "IO connections x Labor flow"),
           out = paste0("../outputs/regression_tables/local_porter_interaction_", year, "_", region, version, ".html"))
 
 summary(p_inter05 <- lm(coagg_porter ~ io01 * labor01, data = mdf3))
