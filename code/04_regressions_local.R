@@ -19,6 +19,11 @@ year <- 2017
 version <- ""
 manuf_focus <- FALSE
 io_iv_country_code <- "USA"
+#io_iv_country_code <- "SWE"
+#io_iv_country_code <- "HUN"
+#io_iv_country_code <- "CZE"
+#io_iv_country_code <- "SVK"
+
 
 # file from OC
 mdf3 <- fread(paste0("../data/oc10_2023_sep/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
@@ -78,9 +83,6 @@ mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
 if(manuf_focus == TRUE){
   mdf3 <- subset(mdf3, (ind1 > 100) & (ind1 < 350))
   mdf3 <- subset(mdf3, (ind2 > 100) & (ind2 < 350))
-} else
-{
-  mdf3
 }
 
 
@@ -108,16 +110,20 @@ stargazer(egk_m01,
 
 
 # set up the IV part here
+# summary(lm(lab_standard ~ swe_lab_standard, data = mdf3))
 summary(lm(io_standard ~ iv_io_standard, data = mdf3))
 summary(lm(io_standard ~ swe_io_standard, data = mdf3))
 
+
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | iv_io_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
 
 
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ sr_norm | swe_sr_norm, data = mdf3))
+# summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
 coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
 #stargazer(coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id),
