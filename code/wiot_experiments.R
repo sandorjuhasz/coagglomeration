@@ -7,11 +7,11 @@ library(tidyr)
 
 
 # data from WIOD home page
-load("../data/WIOT2014_October16_ROW.RData")
+load("../data/io_external/WIOT2014_October16_ROW.RData")
 
 
 # key table
-key_table <- fread("../data/key_table_nace2_wiot.csv")
+key_table <- fread("../data/io_external/key_table_nace2_wiot.csv")
 
 
 # available countries - minus TOTAL and Rest-of-the-World
