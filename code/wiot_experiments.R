@@ -73,6 +73,28 @@ full_el <- data.table(expand.grid(c(key_table$ind_2dig), c(key_table$ind_2dig)))
 colnames(full_el) <- c("ind1", "ind2")
 
 
+# function for undirected edgelist creation
+add_eid <- function(elist_frame_df){
+  tech_df1 <-
+    elist_frame_df %>%
+    filter(elist_frame_df[, 1] <= elist_frame_df[, 2]) %>%
+    mutate(eid = seq(from = 1, to = n(), by = 1))
+  
+  tech_df2 <-
+    tech_df1 %>%
+    select(2, 1, 3)	
+  colnames(tech_df2) <- colnames(tech_df1)
+  
+  elist_frame_df <-
+    bind_rows(tech_df1, tech_df2) %>%
+    distinct() %>%
+    arrange(.[1], .[2])
+  
+  return(elist_frame_df)
+}
+full_el <- add_eid(full_el)
+
+
 # add wiot keys
 full_el <- merge(
   full_el,
@@ -112,6 +134,7 @@ el_list <- rbindlist(el_list)
 el_list$value[is.na(el_list$value)==1] <- 0
 
 
+
 # sr_norm style
 el_list <- el_list %>%
   group_by(c_code, ind1) %>%
@@ -126,6 +149,20 @@ el_list <- el_list %>%
   data.table()
 
 el_list$iv_io_norm[is.na(el_list$iv_io_norm)==1] <- -1
+
+
+# make undirected
+el_list <- el_list %>%
+  arrange(c_code, eid, ind1, ind2) %>%
+  group_by(c_code, eid) %>%
+  mutate(iv_io_norm = sum(iv_io_norm, na.rm = TRUE) / 2) %>%
+  mutate(tag_drop = ifelse(sum(is.na(iv_io)) == 2, 1, 0)) %>% # handle the twoway missings here
+  ungroup() %>%
+  # drop if edge is not identified either way, or loop
+  # filter(ind_i != ind_j) %>%
+  # filter(tag_drop != 1) %>%
+  # keep necessary variables
+  data.table()
 
 
 
