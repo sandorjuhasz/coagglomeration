@@ -18,8 +18,8 @@ ind <- 3
 year <- 2017
 version <- ""
 manuf_focus <- FALSE
-io_iv_country_code <- "USA"
-#io_iv_country_code <- "SWE"
+#io_iv_country_code <- "USA"
+io_iv_country_code <- "SWE"
 #io_iv_country_code <- "HUN"
 #io_iv_country_code <- "CZE"
 #io_iv_country_code <- "SVK"
@@ -59,7 +59,9 @@ mdf3$labor01 <- ifelse(mdf3$sr_norm > 0, 1, 0)
 mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
 
 
-# add IO IVs
+
+
+# add IO IVs from wiot
 iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
 iv_el <- subset(iv_el, c_code == io_iv_country_code)
 
@@ -75,6 +77,23 @@ mdf3 <- merge(
   all.y = FALSE
 )
 mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+
+
+
+
+# add US supply IV
+iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
+
+mdf3 <- merge(
+  mdf3,
+  dplyr::select(iv_us, ind1, ind2, iv_io_norm),
+  by = c("ind1", "ind2"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+
+
 
 
 # drop rows with NAs -- create an equal sample
