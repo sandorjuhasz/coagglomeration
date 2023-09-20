@@ -111,6 +111,7 @@ stargazer(egk_m01,
 
 # set up the IV part here
 # summary(lm(lab_standard ~ swe_lab_standard, data = mdf3))
+
 summary(lm(io_standard ~ iv_io_standard, data = mdf3))
 summary(lm(io_standard ~ swe_io_standard, data = mdf3))
 

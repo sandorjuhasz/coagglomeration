@@ -4,6 +4,7 @@
 library(data.table)
 library(dplyr)
 library(mefa4)
+library(reshape2)
 
 
 
@@ -14,8 +15,13 @@ library(mefa4)
 naics_isic <- fread("../data/crosswalk_tables/NAICS2012US-ISIC4.txt")
 isic_nace <- fread("../data/crosswalk_tables/ISIC4_NACE2.txt")
 
+
 # baseline cleaning
-naics_isic <- subset(naics_isic, NAICS2012Code != "n/a")
+naics_isic <- subset(
+  naics_isic,
+  (NAICS2012Code != "n/a") &
+  (ISIC4Code != 12)
+)
 
 # create 4-digit crosswalk tables
 crosswalk_naics_isic <- naics_isic %>%
@@ -25,6 +31,7 @@ crosswalk_naics_isic <- naics_isic %>%
   group_by(naics_4d) %>%
   mutate(nr_isic = 1/n()) %>%
   data.table()
+
 
 crosswalk_isic_nace <- isic_nace %>%
   mutate(
@@ -71,7 +78,7 @@ supp_4d <- supp_df %>%
   data.table()
 
 
-# merge
+# join ISIC codes to NAICS industry2
 table1 <- merge(
   supp_4d,
   crosswalk_naics_isic,
@@ -83,8 +90,52 @@ table1 <- merge(
 )
 
 
+# many mismatches -- clean up for now and revisit this part
+table1 <- table1[complete.cases(table1[ , c("naics1_4d", "ISIC4Code", "value")]), ] 
 
 
+# compute corrected value and keep key columns
+table1$value_corrected <- table1$value * table1$nr_isic
+
+table1 <- table1 %>%
+  select(naics1_4d, ISIC4Code, value_corrected) %>%
+  unique() %>%
+  arrange(naics1_4d, ISIC4Code) %>%
+  data.table()
+
+
+# edgelist to matrix
+mat1 <- as.matrix(reshape2::acast(table1, naics1_4d ~ ISIC4Code, value.var = "value_corrected", fun.aggregate = sum))
+
+
+# 3 -- matrix manipulation
+table2 <- crosswalk_isic_nace %>%
+  select(isic_4d, nace_4d, nr_nace) %>%
+  data.table() %>%
+  unique()
+
+
+# filter for relevant industries -- present in the supply data
+isic_codes <- unique(table1$ISIC4Code)
+table2 <- subset(table2, isic_4d %in% isic_codes)
+
+
+# edgelist to matrix again
+mat2 <- as.matrix(reshape2::acast(table2, isic_4d ~ nace_4d, value.var = "nr_nace"))
+mat2[is.na(mat2)==1] <- 0
+
+
+# matrix multiplication
+naics_nace_mat <- mat1 %*% mat2
+nace_nace_mat <- t(naics_nace_mat) %*% naics_nace_mat
+
+
+# matrix to edgelist again
+tsupp <- Melt(as.matrix(nace_nace_mat))
+colnames(tsupp) <- c("ind1", "ind2", "value")
+
+
+hist(tsupp$value)
 
 
 
