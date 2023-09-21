@@ -276,7 +276,7 @@ stargazer(p_inter05,
 
 
 
-# for interplot
+# for interplots -- EGK
 summary(egk_interplot <- lm(egk_coagg ~ io_norm * sr_norm, data = mdf3))
 
 # interplot 1 
@@ -300,6 +300,135 @@ file_name <- paste0("../figures/", title, "_", region, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
 interplot(m = egk_interplot, var1 = "io_norm", var2 = "sr_norm", size=3) +
+  xlab("Labor flow") +
+  ylab("Estimated coefficient for\nIO transactions") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# for interplots -- porter
+summary(porter_interplot <- lm(coagg_porter ~ io_norm * sr_norm, data = mdf3))
+
+# interplot 1 
+title <- "interplot_porter_SR_transactions"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_interplot, var1 = "sr_norm", var2 = "io_norm", size=3) +
+  xlab("IO transactions") +
+  ylab("Estimated coefficient for\nlabor flow") +
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# interplot 2
+title <- "interplot_porter_transactions_SR"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_interplot, var1 = "io_norm", var2 = "sr_norm", size=3) +
+  xlab("Labor flow") +
+  ylab("Estimated coefficient for\nIO transactions") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# for interplots -- porter MNE-MNE
+summary(porter_mne_interplot <- lm(coagg_porter_mne ~ io_norm * sr_norm, data = mdf3))
+
+# interplot 1 
+title <- "interplot_porter_SR_transactions_mne"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_mne_interplot, var1 = "sr_norm", var2 = "io_norm", size=3) +
+  xlab("IO transactions") +
+  ylab("Estimated coefficient for\nlabor flow") +
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# interplot 2
+title <- "interplot_porter_transactions_SR_mne"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_mne_interplot, var1 = "io_norm", var2 = "sr_norm", size=3) +
+  xlab("Labor flow") +
+  ylab("Estimated coefficient for\nIO transactions") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# for interplots -- porter domestic-domestic
+summary(porter_local_interplot <- lm(coagg_porter_local ~ io_norm * sr_norm, data = mdf3))
+
+# interplot 1 
+title <- "interplot_porter_SR_transactions_domestic"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_local_interplot, var1 = "sr_norm", var2 = "io_norm", size=3) +
+  xlab("IO transactions") +
+  ylab("Estimated coefficient for\nlabor flow") +
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# interplot 2
+title <- "interplot_porter_transactions_SR_domestic"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_local_interplot, var1 = "io_norm", var2 = "sr_norm", size=3) +
+  xlab("Labor flow") +
+  ylab("Estimated coefficient for\nIO transactions") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+
+# for interplots -- porter MNE-domestic
+summary(porter_mne_local_interplot <- lm(coagg_porter_mne_local ~ io_norm * sr_norm, data = mdf3))
+
+# interplot 1 
+title <- "interplot_porter_SR_transactions_mne_domestic"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_mne_local_interplot, var1 = "sr_norm", var2 = "io_norm", size=3) +
+  xlab("IO transactions") +
+  ylab("Estimated coefficient for\nlabor flow") +
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# interplot 2
+title <- "interplot_porter_transactions_SR_mne_domestic"
+file_name <- paste0("../figures/", title, "_", region, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = porter_mne_local_interplot, var1 = "io_norm", var2 = "sr_norm", size=3) +
   xlab("Labor flow") +
   ylab("Estimated coefficient for\nIO transactions") +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
