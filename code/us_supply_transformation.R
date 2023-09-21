@@ -30,9 +30,9 @@ naics_isic <- subset(
 
 # create 4-digit crosswalk tables
 crosswalk_naics_isic <- naics_isic %>%
-  mutate(naics_4d = substr(NAICS2012Code, 1, 4)) %>%
+  mutate(naics_4d = as.numeric(substr(NAICS2012Code, 1, 4))) %>%
   select(naics_4d, ISIC4Code) %>%
-  unique() %>%
+  distinct() %>%
   group_by(naics_4d) %>%
   mutate(nr_isic = 1/n()) %>%
   data.table()
@@ -41,7 +41,6 @@ crosswalk_naics_isic <- naics_isic %>%
 crosswalk_isic_nace <- isic_nace %>%
   mutate(
     isic_digits = nchar(ISIC4code),
-    #isic_4d = as.numeric(ISIC4code)
     isic_4d = sub("^0+", "", ISIC4code)
   ) %>%
   filter(isic_digits == 4) %>%
@@ -51,6 +50,8 @@ crosswalk_isic_nace <- isic_nace %>%
   ) %>%
   group_by(isic_4d) %>%
   mutate(
+    isic_4d = as.numeric(isic_4d),
+    nace_4d = as.numeric(nace_4d),
     nr_nace = 1/n()
   ) %>%
   data.table()

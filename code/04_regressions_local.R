@@ -19,9 +19,9 @@ year <- 2017
 version <- ""
 manuf_focus <- FALSE
 #io_iv_country_code <- "USA"
-io_iv_country_code <- "SWE"
+#io_iv_country_code <- "SWE"
 #io_iv_country_code <- "HUN"
-#io_iv_country_code <- "CZE"
+io_iv_country_code <- "CZE"
 #io_iv_country_code <- "SVK"
 
 
