@@ -14,11 +14,16 @@ library(cowplot)
 
 # parameters
 #region <- "nuts4"
-region <- "nuts3"
+region <- "nuts4"
 ind <- 3
 year <- 2017
 version <- ""
 manuf_focus <- FALSE
+manuf_and_services <- FALSE
+drop_agric <- FALSE
+drop_public <- FALSE
+wiot_iv <- FALSE
+us_iv <- TRUE
 #io_iv_country_code <- "USA"
 #io_iv_country_code <- "SWE"
 #io_iv_country_code <- "HUN"
@@ -63,36 +68,40 @@ mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
 
 
 # add IO IVs from wiot
-iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
-iv_el <- subset(iv_el, c_code == io_iv_country_code)
-
-mdf3$ind1_2d <- mdf3$ind1 %/% 10
-mdf3$ind2_2d <- mdf3$ind2 %/% 10
-
-mdf3 <- merge(
-  mdf3,
-  iv_el,
-  by.x = c("ind1_2d", "ind2_2d"),
-  by.y = c("ind1", "ind2"),
-  all.x = TRUE,
-  all.y = FALSE
-)
-mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+if(wiot_iv == TRUE){
+  iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
+  iv_el <- subset(iv_el, c_code == io_iv_country_code)
+  
+  mdf3$ind1_2d <- mdf3$ind1 %/% 10
+  mdf3$ind2_2d <- mdf3$ind2 %/% 10
+  
+  mdf3 <- merge(
+    mdf3,
+    iv_el,
+    by.x = c("ind1_2d", "ind2_2d"),
+    by.y = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+}
 
 
 
 
 # add US supply IV
-iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
-
-mdf3 <- merge(
-  mdf3,
-  dplyr::select(iv_us, ind1, ind2, iv_io_norm),
-  by = c("ind1", "ind2"),
-  all.x = TRUE,
-  all.y = FALSE
-)
-mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+if(us_iv == TRUE){
+  iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
+  
+  mdf3 <- merge(
+    mdf3,
+    dplyr::select(iv_us, ind1, ind2, iv_io_norm),
+    by = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
+}
 
 
 
@@ -100,10 +109,39 @@ mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
 # drop rows with NAs -- create an equal sample
 mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
 
+
+# industry filters
 if(manuf_focus == TRUE){
   mdf3 <- subset(mdf3, (ind1 > 100) & (ind1 < 350))
   mdf3 <- subset(mdf3, (ind2 > 100) & (ind2 < 350))
 }
+
+if(manuf_and_services == TRUE){
+  mdf3m <- subset(mdf3, (ind1 > 100) & (ind1 < 350))
+  mdf3m <- subset(mdf3m, (ind2 > 100) & (ind2 < 350))
+  
+  mdf3s <- subset(mdf3, (ind1 > 490) & (ind1 < 840))
+  mdf3s <- subset(mdf3s, (ind2 > 490) & (ind2 < 840))
+  
+  mdf3ms1 <- subset(mdf3, (ind1 > 100) & (ind1 < 350))
+  mdf3ms1 <- subset(mdf3ms1, (ind2 > 490) & (ind2 < 840))
+  mdf3ms2 <- subset(mdf3, (ind1 > 490) & (ind1 < 840))
+  mdf3ms2 <- subset(mdf3ms2, (ind2 > 100) & (ind2 < 350))
+  
+  mdf3 <- rbind(mdf3m, mdf3s, mdf3ms1, mdf3ms2)
+}
+
+
+if(drop_public == TRUE){
+  mdf3 <- subset(mdf3, (ind1 < 840))
+  mdf3 <- subset(mdf3, (ind2 < 840))
+}
+
+if(drop_agric == TRUE){
+  mdf3 <- subset(mdf3, (ind1 > 100))
+  mdf3 <- subset(mdf3, (ind2 > 100))
+}
+
 
 
 # baseline models -- EGK
@@ -157,6 +195,13 @@ summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_norm + sr_norm | swe_io_norm + swe
 summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard | swe_io_standard, data = mdf3))
 summary(iv_porter <- ivreg::ivreg(coagg_porter ~ lab_standard | swe_lab_standard, data = mdf3))
 summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
+
+summary(base00 <- lm(coagg_porter ~ io_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard | iv_io_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ lab_standard | swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+
 
 summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = subset(mdf3, (io_norm != -1) & (swe_io_norm != -1))))
 
