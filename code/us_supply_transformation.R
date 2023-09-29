@@ -14,8 +14,6 @@ year <- 2017
 
 
 
-# 1 -- prepare crosswalk tables
-
 # import crosswalk tables
 naics_supp_naics <- data.table(read_xlsx("../data/crosswalk_tables/naics_correction_230927.xlsx", sheet = 1))
 naics_isic <- fread("../data/crosswalk_tables/NAICS2012US-ISIC4.txt")
@@ -24,56 +22,7 @@ isic_nace <- fread("../data/crosswalk_tables/ISIC4_NACE2.txt")
 
 
 
-
-
-
-
-
-# baseline cleaning
-#naics_isic <- subset(
-#  naics_isic,
-#  (NAICS2012Code != "n/a") &
-#  (ISIC4Code != 12)
-#)
-
-
-# create 4-digit crosswalk tables
-crosswalk_naics_isic <- naics_isic %>%
-  mutate(naics_4d = as.numeric(substr(NAICS2012Code, 1, 4))) %>%
-  select(naics_4d, ISIC4Code) %>%
-  distinct() %>%
-  group_by(naics_4d) %>%
-  mutate(nr_isic = 1/n()) %>%
-  data.table()
-
-
-crosswalk_isic_nace <- isic_nace %>%
-  mutate(
-    isic_digits = nchar(ISIC4code),
-    isic_4d = sub("^0+", "", ISIC4code)
-  ) %>%
-  filter(isic_digits == 4) %>%
-  mutate(
-    nace_4d = sub("^(..).", "\\1", NACE2code),
-    nace_4d = sub("^0+", "", nace_4d)
-  ) %>%
-  group_by(isic_4d) %>%
-  mutate(
-    isic_4d = as.numeric(isic_4d),
-    nace_4d = as.numeric(nace_4d),
-    nr_nace = 1/n()
-  ) %>%
-  data.table()
-
-
-
-
-
-
-
-
-
-# 2 -- prepare US supply table
+# 1 -- prepare US supply table
 
 # import supply table NAICS correction
 naics_supp_naics <- data.table(read_xlsx("../data/crosswalk_tables/naics_correction_230927.xlsx", sheet = 1))
@@ -117,6 +66,9 @@ supp_df2 <- merge(
 )
 
 
+
+# 2 -- NAICS to ISIC
+
 # 4 digit transformation
 supp_df2$naics1_4d <- substr(supp_df2$naics_code1, 1, 4)
 supp_df2$naics2_4d <- substr(supp_df2$naics_code2, 1, 4)
@@ -149,6 +101,12 @@ supp_df3 <- supp_df2 %>%
 
 
 # create 4-digit crosswalk tables
+naics_isic <- subset(
+  naics_isic,
+  #  (NAICS2012Code != "n/a") &
+  (ISIC4Code != 12 & ISIC4Code != 14)
+)
+
 crosswalk_naics_isic <- naics_isic %>%
   mutate(naics_4d = as.numeric(substr(NAICS2012Code, 1, 4))) %>%
   select(naics_4d, ISIC4Code) %>%
@@ -188,109 +146,88 @@ rest_supp_df4 <- subset(supp_df4, is.na(ISIC4Code1)==1 | is.na(ISIC4Code2)==1)
 supp_df5 <- subset(supp_df4, is.na(ISIC4Code1)==0 & is.na(ISIC4Code2)==0)
 
 # clear UP  -- ISIC x ISIC table
-supp_df5 <- supp_df4 %>%
+supp_df5 <- supp_df5 %>%
   select(ISIC4Code1, ISIC4Code2, value_distributed3) %>%
   distinct() %>%
-  group_by(naics1_4d, naics2_4d) %>%
-  #mutate(n_eid = n()) %>%
-  summarise(value_distributed2 = sum(value_distributed)) %>%
+  group_by(ISIC4Code1, ISIC4Code2) %>%
+  summarise(value_distributed4 = sum(value_distributed3)) %>%
   data.table()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# create 4-digit industry-industry edgelist
-supp_df$naics1_4d <- substr(supp_df$ind1, 1, 4)
-supp_df$naics2_4d <- substr(supp_df$ind2, 1, 4)
-
-supp_4d <- supp_df %>%
-  group_by(naics1_4d, naics2_4d) %>%
-  summarise(value = sum(value)) %>%
-  data.table()
-
-
-# join ISIC codes to NAICS industry2
-table1 <- merge(
-  supp_4d,
-  crosswalk_naics_isic,
-  by.x = "naics2_4d",
-  by.y = "naics_4d",
-  all.x = TRUE,
-  all.y = TRUE,
-  allow.cartesian = TRUE
-)
-
-
-# many mismatches -- clean up for now and revisit this part
-table1 <- table1[complete.cases(table1[ , c("naics1_4d", "ISIC4Code", "value")]), ] 
-
-
-# compute corrected value and keep key columns
-table1$value_corrected <- table1$value * table1$nr_isic
-
-table1 <- table1 %>%
-  select(naics1_4d, ISIC4Code, value_corrected) %>%
-  unique() %>%
-  arrange(naics1_4d, ISIC4Code) %>%
-  data.table()
-
-
-# edgelist to matrix
-mat1 <- as.matrix(reshape2::acast(table1, naics1_4d ~ ISIC4Code, value.var = "value_corrected", fun.aggregate = sum))
-
-
-
-
-# 3 -- matrix manipulation
-table2 <- crosswalk_isic_nace %>%
+# 3 -- ISIC to NACE
+crosswalk_isic_nace <- isic_nace %>%
+  mutate(
+    isic_digits = nchar(ISIC4code),
+    isic_4d = sub("^0+", "", ISIC4code)
+  ) %>%
+  filter(isic_digits == 4) %>%
+  mutate(
+    nace_4d = sub("^(..).", "\\1", NACE2code),
+    nace_4d = sub("^0+", "", nace_4d)
+  ) %>%
+  group_by(isic_4d) %>%
+  mutate(
+    isic_4d = as.numeric(isic_4d),
+    nace_4d = as.numeric(nace_4d),
+    nr_nace = 1/n()
+  ) %>%
   select(isic_4d, nace_4d, nr_nace) %>%
   data.table() %>%
   unique()
 
 
-# filter for relevant industries -- present in the supply data
-isic_codes <- unique(table1$ISIC4Code)
-table2 <- subset(table2, isic_4d %in% isic_codes)
+# join NACE codes to ISIC-ISIC edgelist
+supp_df6 <- merge(
+  supp_df5,
+  crosswalk_isic_nace,
+  by.x = "ISIC4Code1",
+  by.y = "isic_4d",
+  all.x = TRUE,
+  all.y = FALSE,
+  allow.cartesian = TRUE
+)
+supp_df6 <- merge(
+  supp_df6,
+  crosswalk_isic_nace,
+  by.x = "ISIC4Code2",
+  by.y = "isic_4d",
+  all.x = TRUE,
+  all.y = FALSE,
+  allow.cartesian = TRUE,
+  suffixes = c("1", "2")
+)
 
+# distributor
+supp_df6$distributor <- supp_df6$nr_nace1 * supp_df6$nr_nace2
+supp_df6$value_distributed5 <- supp_df6$value_distributed4 * supp_df6$distributor
 
-# edgelist to matrix again
-mat2 <- as.matrix(reshape2::acast(table2, isic_4d ~ nace_4d, value.var = "nr_nace"))
-mat2[is.na(mat2)==1] <- 0
-
-
-# matrix multiplication
-naics_nace_mat <- mat1 %*% mat2
-nace_nace_mat <- t(naics_nace_mat) %*% naics_nace_mat
-
-
-# matrix to edgelist again
-tsupp <- data.table(Melt(as.matrix(nace_nace_mat)))
-colnames(tsupp) <- c("ind1", "ind2", "value")
-
-
-
-
-# 4 -- normalized IO flow between 3 digit NACE-NACE -- final touch
-tsupp$ind1_3d <- substr(tsupp$ind1, 1, 3)
-tsupp$ind2_3d <- substr(tsupp$ind2, 1, 3)
-
-tsupp <- tsupp %>%
-  group_by(ind1_3d, ind2_3d) %>%
-  summarise(value = sum(value)) %>%
+# clear UP  -- ISIC x ISIC table
+supp_df6 <- supp_df6 %>%
+  select(nace_4d1, nace_4d2, value_distributed5) %>%
+  distinct() %>%
+  group_by(nace_4d1, nace_4d2) %>%
+  summarise(value_final = sum(value_distributed5)) %>%
   data.table()
+
+
+
+
+# 4 -- add NAICS - NACE direct transformation
+
+
+
+
+
+
+# 5 -- 
+supp_final <- supp_df6
+supp_final$ind1 <- supp_final$nace_4d1 %/% 10
+supp_final$ind2 <- supp_final$nace_4d2 %/% 10
+supp_final <- supp_final %>%
+  group_by(ind1, ind2) %>%
+  summarise(value_final = sum(value_final)) %>%
+  data.table()
+
 
 
 # industry codes from the master file
@@ -326,12 +263,20 @@ add_eid <- function(elist_frame_df){
 }
 full_el <- add_eid(full_el)
 
+full_el$ind1 <- as.numeric(full_el$ind1)
+full_el$ind2 <- as.numeric(full_el$ind2)
+
+
+
+
+
+
+
 
 full_supp <- merge(
   full_el,
-  tsupp,
-  by.x = c("ind1", "ind2"),
-  by.y = c("ind1_3d", "ind2_3d"),
+  supp_final,
+  by = c("ind1", "ind2"),
   all.x = TRUE,
   all.y = FALSE
 )

@@ -134,6 +134,7 @@ stargazer(egk_m01,
 
 summary(lm(io_standard ~ iv_io_standard, data = mdf3))
 summary(lm(io_standard ~ swe_io_standard, data = mdf3))
+summary(lm(lab_standard ~ swe_lab_standard, data = mdf3))
 
 
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | iv_io_standard, data = mdf3))
