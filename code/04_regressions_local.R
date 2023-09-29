@@ -13,7 +13,8 @@ library(cowplot)
 
 
 # parameters
-region <- "nuts4"
+#region <- "nuts4"
+region <- "nuts3"
 ind <- 3
 year <- 2017
 version <- ""
