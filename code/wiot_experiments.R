@@ -6,6 +6,10 @@ library(dplyr)
 library(tidyr)
 
 
+# parameters
+cdf_round <- TRUE
+
+
 # data from WIOD home page
 load("../data/io_external/WIOT2014_October16_ROW.RData")
 
@@ -66,6 +70,11 @@ cdf <- merge(
 cdf <- cdf %>%
   select(c_code, ind1, ind2, value, -ind) %>%
   data.table()
+
+if(cdf_round == TRUE){
+  cdf$value <- round(cdf$value, 0)
+}
+
 
 
 # the final edgelist

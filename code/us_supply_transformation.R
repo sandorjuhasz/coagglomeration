@@ -10,7 +10,7 @@ library(readxl)
 # parameters
 region <- "nuts4"
 year <- 2017
-
+supp_round <- TRUE
 
 
 
@@ -49,7 +49,7 @@ supp_df$eid <- seq(1, nrow(supp_df), 1)
 
 supp_df2 <- merge(
   supp_df,
-  select(naics_supp_naics, naics_supp, naics_code),
+  dplyr::select(naics_supp_naics, naics_supp, naics_code),
   by.x = "ind1",
   by.y = "naics_supp",
   all.x = TRUE,
@@ -57,7 +57,7 @@ supp_df2 <- merge(
 )
 supp_df2 <- merge(
   supp_df2,
-  select(naics_supp_naics, naics_supp, naics_code),
+  dplyr::select(naics_supp_naics, naics_supp, naics_code),
   by.x = "ind2",
   by.y = "naics_supp",
   all.x = TRUE,
@@ -227,6 +227,14 @@ supp_final <- supp_final %>%
   group_by(ind1, ind2) %>%
   summarise(value_final = sum(value_final)) %>%
   data.table()
+
+
+# modify values -- soo many 0.0005442 like values
+if(supp_round==TRUE){
+  #supp_final$value_final <- round(supp_final$value_final, 0)
+  supp_final$value_final <- supp_final$value_final * 1000
+}
+
 
 
 

@@ -22,11 +22,11 @@ manuf_focus <- FALSE
 manuf_and_services <- FALSE
 drop_agric <- FALSE
 drop_public <- FALSE
-wiot_iv <- TRUE
-us_iv <- FALSE
-#io_iv_country_code <- "CZE"
+wiot_iv <- FALSE
+us_iv <- TRUE
+io_iv_country_code <- "CZE"
 #io_iv_country_code <- "USA"
-io_iv_country_code <- "SWE"
+#io_iv_country_code <- "SWE"
 #io_iv_country_code <- "HUN"
 #io_iv_country_code <- "SVK"
 
@@ -86,14 +86,17 @@ if(wiot_iv == TRUE){
   mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
 }
 
-
 # add more countries
 #cze_iv_io_standard <- mdf3$iv_io_standard
 #usa_iv_io_standard <- mdf3$iv_io_standard
 #swe_iv_io_standard <- mdf3$iv_io_standard
+#hun_iv_io_standard <- mdf3$iv_io_standard
 #mdf3$cze_iv_io_standard <- cze_iv_io_standard
 #mdf3$usa_iv_io_standard <- usa_iv_io_standard
 #mdf3$swe_iv_io_standard <- swe_iv_io_standard
+#mdf3$hun_iv_io_standard <- swe_iv_io_standard
+# summary(wiot_test <- lm(usa_iv_io_standard ~ hun_iv_io_standard, data = mdf3))
+
 
 
 # add US supply IV
@@ -185,6 +188,12 @@ summary(lm(lab_standard ~ swe_lab_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | iv_io_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+
+# summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
+# summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
+
+
 
 
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
