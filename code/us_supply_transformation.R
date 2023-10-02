@@ -153,6 +153,7 @@ supp_df5 <- supp_df5 %>%
   summarise(value_distributed4 = sum(value_distributed3)) %>%
   data.table()
 
+# symmetry test ISIC 113, 9524
 
 # 3 -- ISIC to NACE
 crosswalk_isic_nace <- isic_nace %>%
@@ -201,7 +202,9 @@ supp_df6 <- merge(
 supp_df6$distributor <- supp_df6$nr_nace1 * supp_df6$nr_nace2
 supp_df6$value_distributed5 <- supp_df6$value_distributed4 * supp_df6$distributor
 
-# clear UP  -- ISIC x ISIC table
+# symmetry test ISIC 113, 9524
+
+# clear UP  -- NACE x NACE table
 supp_df6 <- supp_df6 %>%
   select(nace_4d1, nace_4d2, value_distributed5) %>%
   distinct() %>%
@@ -209,7 +212,7 @@ supp_df6 <- supp_df6 %>%
   summarise(value_final = sum(value_distributed5)) %>%
   data.table()
 
-
+# symmetry test ISIC 113, 9524
 
 
 # 4 -- add NAICS - NACE direct transformation
@@ -235,7 +238,7 @@ if(supp_round==TRUE){
   supp_final$value_final <- supp_final$value_final * 1000
 }
 
-
+# symmetry test NACE 11, 952
 
 
 # industry codes from the master file
