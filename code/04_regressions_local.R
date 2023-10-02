@@ -22,12 +22,12 @@ manuf_focus <- FALSE
 manuf_and_services <- FALSE
 drop_agric <- FALSE
 drop_public <- FALSE
-wiot_iv <- FALSE
-us_iv <- TRUE
+wiot_iv <- TRUE
+us_iv <- FALSE
+#io_iv_country_code <- "CZE"
 #io_iv_country_code <- "USA"
-#io_iv_country_code <- "SWE"
+io_iv_country_code <- "SWE"
 #io_iv_country_code <- "HUN"
-io_iv_country_code <- "CZE"
 #io_iv_country_code <- "SVK"
 
 
@@ -87,6 +87,13 @@ if(wiot_iv == TRUE){
 }
 
 
+# add more countries
+#cze_iv_io_standard <- mdf3$iv_io_standard
+#usa_iv_io_standard <- mdf3$iv_io_standard
+#swe_iv_io_standard <- mdf3$iv_io_standard
+#mdf3$cze_iv_io_standard <- cze_iv_io_standard
+#mdf3$usa_iv_io_standard <- usa_iv_io_standard
+#mdf3$swe_iv_io_standard <- swe_iv_io_standard
 
 
 # add US supply IV
@@ -208,6 +215,17 @@ summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | sw
 coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 #stargazer(coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id),
 #          out = paste0("../outputs/regression_tables/local_porter_iv_", year, "_", region, version, ".html"))
+
+
+# multiple countries
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | cze_iv_io_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | cze_iv_io_standard + usa_iv_io_standard + swe_iv_io_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard + io_standard | swe_lab_standard + cze_iv_io_standard + usa_iv_io_standard + swe_iv_io_standard, data = mdf3))
+
+
+
+
 
 
 
