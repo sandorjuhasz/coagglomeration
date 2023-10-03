@@ -24,8 +24,8 @@ drop_agric <- FALSE
 drop_public <- FALSE
 wiot_iv <- FALSE
 us_iv <- TRUE
-io_iv_country_code <- "CZE"
-#io_iv_country_code <- "USA"
+#io_iv_country_code <- "CZE"
+io_iv_country_code <- "USA"
 #io_iv_country_code <- "SWE"
 #io_iv_country_code <- "HUN"
 #io_iv_country_code <- "SVK"
@@ -62,6 +62,12 @@ mdf3$swe_lab_standard <- scale(mdf3$swe_sr_norm)
 mdf3$io01 <- ifelse(mdf3$io_norm > 0, 1, 0)
 mdf3$labor01 <- ifelse(mdf3$sr_norm > 0, 1, 0)
 
+
+mdf3$ind1_1d <- mdf3$ind1 %/% 100
+mdf3$ind2_1d <- mdf3$ind2 %/% 100
+
+mdf3$ind1_2d <- mdf3$ind1 %/% 10
+mdf3$ind2_2d <- mdf3$ind2 %/% 10
 mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
 
 
@@ -189,6 +195,20 @@ summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | iv_io_standard, data = 
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
 summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+
+
+# EGK style IV estiamtion -- no same NACE 2digit
+iv_mdf3 <- subset(mdf3, (ind1_2d != ind2_2d))
+#iv_mdf3 <- subset(mdf3, (ind1_1d != ind2_1d))
+
+summary(lm(io_standard ~ iv_io_standard, data = iv_mdf3))
+summary(lm(io_standard ~ swe_io_standard, data = iv_mdf3))
+summary(lm(lab_standard ~ swe_lab_standard, data = iv_mdf3))
+
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard,
+                               data = iv_mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = iv_mdf3))
+coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 
 # summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
 # summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
