@@ -20,18 +20,10 @@ manuf_focus <- FALSE
 manuf_and_services <- FALSE
 drop_agric <- FALSE
 drop_public <- FALSE
-us_iv <- FALSE
-multi_iv <- FALSE
-#c_codes <- c("CZE", "USA", "SWE", "SVK", "ITA", "FRA", "MEX", "BRA")
-iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv") %>% filter(c_code != "HUN")
-c_codes <- unique(iv_el$c_code)
+us_supply_iv <- FALSE
 wiot_iv <- TRUE
-io_iv_country_code <- "USA"
-#io_iv_country_code <- "CZE"
-#io_iv_country_code <- "SWE"
-#io_iv_country_code <- "HUN"
-#io_iv_country_code <- "SVK"
-version <- ""
+c_codes <- c("USA", "SWE", "CZE")
+version <- "wiot_"
 
 
 # file from OC
@@ -39,6 +31,7 @@ mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region, "_", year, "_base
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_without_Budapest_nuts4_2017_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_single_plants_nuts4_2017_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_syn_mnes_nuts4_2017_based.csv"), sep = ";")
+
 
 
 # remove self loops and repeated pairs
@@ -60,7 +53,8 @@ mdf3$coagg_mne <- scale(mdf3$coagg_mne)
 mdf3$coagg_local <- scale(mdf3$coagg_local)
 mdf3$coagg_mne_local <- scale(mdf3$coagg_mne_local)
 
-mdf3$io_standard <- scale(mdf3$io_norm)
+#mdf3$io_standard <- scale(mdf3$io_norm)
+mdf3$io_standard_vat <- scale(mdf3$io_norm)
 mdf3$swe_io_standard <- scale(mdf3$swe_io_norm)
 mdf3$lab_standard <- scale(mdf3$sr_norm)
 mdf3$swe_lab_standard <- scale(mdf3$swe_sr_norm)
@@ -75,41 +69,44 @@ mdf3$ind2_2d <- mdf3$ind2 %/% 10
 mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
 
 
+# add WIOT HUN data
+hun_wiot <- fread("../outputs/wiot_edgelist_2_digit.csv") %>%
+  filter(c_code == "HUN") %>%
+  dplyr::select(ind1, ind2, iv_io_norm) %>%
+  rename(io_norm_wiot = iv_io_norm) %>%
+  data.table()
 
+mdf3 <- merge(
+  mdf3,
+  hun_wiot,
+  by.x = c("ind1_2d", "ind2_2d"),
+  by.y = c("ind1", "ind2"),
+  all.x = TRUE,
+  all.y = FALSE
+)
+mdf3$io_standard <- scale(mdf3$io_norm_wiot)
 
-# add IO IVs from wiot
-if(wiot_iv == TRUE){
-  iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
-  iv_el <- subset(iv_el, c_code == io_iv_country_code)
-  
-  mdf3$ind1_2d <- mdf3$ind1 %/% 10
-  mdf3$ind2_2d <- mdf3$ind2 %/% 10
-  
-  mdf3 <- merge(
-    mdf3,
-    iv_el,
-    by.x = c("ind1_2d", "ind2_2d"),
-    by.y = c("ind1", "ind2"),
-    all.x = TRUE,
-    all.y = FALSE
-  )
-  mdf3$iv_io_standard <- scale(mdf3$iv_io_norm)
-}
 
 
 # add wiot IVs for multiple countries
 if(multi_iv == TRUE){
+  # wiot dataset
   iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
-  # c_codes <- c("CZE", "USA", "SWE", "SVK")
+  
+  # list of IVs -- first element with ind IDs
   iv_list <- list()
-  iv_list[[1]] <- dplyr::select(filter(iv_el, c_code == c_codes[1]), ind1, ind2, iv_io_norm)
+  iv_list[[1]] <- dplyr::select(subset(iv_el, c_code == c_codes[1]),
+    ind1, ind2, iv_io_norm)
+  colnames(iv_list[[1]]) <- c("ind1", "ind2", c_codes[1])
+  
   for(c in 2:length(c_codes)){
     print(c)
     temp <- subset(iv_el, c_code == c_codes[c])
     iv_list[[c]] <- data.table(temp$iv_io_norm)
+    colnames(iv_list[[c]]) <- c_codes[c]
   }
   multi_iv_df <- data.table(data.frame(iv_list))
-  colnames(multi_iv_df) <- c("ind1", "ind2", c_codes)
+  #colnames(multi_iv_df[,3:ncol(multi_iv_df)]) <- c(c_codes)
   
   mdf3 <- merge(
     mdf3,
@@ -180,7 +177,6 @@ summary(egk_m02 <- lm(egk_coagg ~ lab_standard, data = mdf3))
 summary(egk_m03 <- lm(egk_coagg ~ io_standard + lab_standard, data = mdf3))
 #summary(egk_m04 <- lm(egk_coagg ~ io_standard + lab_standard + log_nr_firms1 + log_nr_firms2, data = mdf3))
 
-
 # baseline models -- Porter
 summary(porter_m01 <- lm(coagg_porter ~ io_standard, data = mdf3))
 summary(porter_m02 <- lm(coagg_porter ~ lab_standard, data = mdf3))
@@ -194,125 +190,18 @@ stargazer(egk_m01,
           porter_m02,
           porter_m03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_porter_single_plants_", year, "_", region, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_egk_porter_", year, "_", region, ".html"))
 
 
 # set up the IV part here
-summary(lm(io_standard ~ iv_io_standard, data = mdf3))
-summary(lm(io_standard ~ swe_io_standard, data = mdf3))
-summary(lm(lab_standard ~ swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | USA + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | USA + swe_lab_standard, data = mdf3))
 
-
-summary(iv_egk_io <- ivreg::ivreg(egk_coagg ~ io_standard | iv_io_standard, data = mdf3))
-summary(iv_egk_lab <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
-summary(iv_egk_io_lab <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
-summary(iv_porter_io <- ivreg::ivreg(coagg_porter ~ io_standard | iv_io_standard, data = mdf3))
-summary(iv_porter_lab <- ivreg::ivreg(coagg_porter ~ lab_standard | swe_io_standard, data = mdf3))
-summary(iv_porter_io_lab <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
-# summary(iv_porter_io_lab <- ivreg::ivreg(coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
-
-cfe1 <- coeftest(iv_egk_io, vcov = vcovCL, cluster = ~ind_pair_id)
-cfe2 <- coeftest(iv_egk_lab, vcov = vcovCL, cluster = ~ind_pair_id)
-cfe3 <- coeftest(iv_egk_io_lab, vcov = vcovCL, cluster = ~ind_pair_id)
-cfp1 <- coeftest(iv_porter_io, vcov = vcovCL, cluster = ~ind_pair_id)
-cfp2 <- coeftest(iv_porter_lab, vcov = vcovCL, cluster = ~ind_pair_id)
-cfp3 <- coeftest(iv_porter_io_lab, vcov = vcovCL, cluster = ~ind_pair_id)
-
-stargazer(cfe1, cfe2, cfe3, cfp1, cfp2, cfp3,
-          dep.var.labels = c("EGK 1-3,    coagg Porter 4-6"),
-          out = paste0("../outputs/regression_tables/local_iv_egk_", year, "_", region, version, ".html"))
-
-
-
-##### IV search black mass #####
-
- # EGK style IV estiamtion -- no same NACE 2digit
-iv_mdf3 <- subset(mdf3, (ind1_2d != ind2_2d))
-
-summary(lm(io_standard ~ iv_io_standard, data = iv_mdf3))
-summary(lm(io_standard ~ swe_io_standard, data = iv_mdf3))
-summary(lm(lab_standard ~ swe_lab_standard, data = iv_mdf3))
-
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard,
-                               data = iv_mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = iv_mdf3))
-coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
-
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard,
-                               data = iv_mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = iv_mdf3))
-coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
-
-
-# summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
-# summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
-
-
-
-
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | swe_io_standard, data = mdf3))
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ sr_norm | swe_sr_norm, data = mdf3))
-# summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | io_standard + swe_lab_standard, data = mdf3))
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
-coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
-#stargazer(coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id),
-#          out = paste0("../outputs/regression_tables/local_egk_iv_", year, "_", region, version, ".html"))
-
-
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_norm + sr_norm | swe_io_norm + swe_sr_norm, data = mdf3))
-
-summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard | swe_io_standard, data = mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ lab_standard | swe_lab_standard, data = mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
-
-summary(base00 <- lm(coagg_porter ~ io_standard, data = mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard | iv_io_standard, data = mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ lab_standard | swe_lab_standard, data = mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = mdf3))
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
-
-
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | swe_io_standard + swe_lab_standard, data = subset(mdf3, (io_norm != -1) & (swe_io_norm != -1))))
-
-coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
-#stargazer(coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id),
-#          out = paste0("../outputs/regression_tables/local_porter_iv_", year, "_", region, version, ".html"))
-
-
-# multiple countries
-iv_mdf3 <- subset(mdf3, (ind1_2d != ind2_2d))
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard | swe_lab_standard, data = mdf3))
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | cze_iv_io_standard, data = mdf3))
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard | CZE + USA + SWE, data = mdf3))
-summary(iv_egk <- ivreg::ivreg(coagg_porter ~ io_standard | CZE + USA + SWE, data = mdf3))
-
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard + io_standard | swe_lab_standard + CZE + USA + SWE + ITA + FRA + MEX + BRA, data = iv_mdf3))
-coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
-summary(iv_egk <- ivreg::ivreg(coagg_porter ~ lab_standard + io_standard | swe_lab_standard + CZE + USA + SWE + ITA + FRA + MEX + BRA, data = iv_mdf3))
-
-
-# all countries
-summary(iv_egk <- ivreg::ivreg(egk_coagg ~ lab_standard + io_standard | swe_lab_standard
-                               + AUS + AUT + BEL + BGR + BRA + CAN + CHE + CHN
-                               + CYP + CZE + DEU + DNK + ESP + EST + FIN + FRA
-                               + GBR + GRC + HRV + IDN + IND + IRL + ITA + JPN
-                               + KOR + LTU + LUX + LVA + MEX + MLT + NLD + NOR
-                               #+ POL + PRT + ROU + RUS + SVK + SVN + SWE + TUR
-                               + TWN + USA, data = iv_mdf3))
-coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
-
-
-summary(iv_porter <- ivreg::ivreg(coagg_porter ~ lab_standard + io_standard | swe_lab_standard
-                               #+ AUS + AUT + BEL + BGR + BRA + CAN + CHE + CHN
-                               #+ CYP + CZE + DEU + DNK + ESP + EST + FIN + FRA
-                               + GBR + GRC + HRV + IDN + IND + IRL + ITA + JPN
-                               + KOR + LTU + LUX + LVA + MEX + MLT + NLD + NOR
-                               + POL + PRT + ROU + RUS + SVK + SVN + SWE + TUR
-                               + TWN + USA, data = iv_mdf3))
-coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
-
-
+c_egk <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
+c_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
+stargazer(c_egk, c_porter,
+          dep.var.labels = c("EGK | coagg Porter"),
+          out = paste0("../outputs/regression_tables/", version, "local_iv_", year, "_", region, ".html"))
 
 
 
