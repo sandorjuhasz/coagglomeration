@@ -36,6 +36,9 @@ version <- ""
 
 # file from OC
 mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
+#mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_without_Budapest_nuts4_2017_based.csv"), sep = ";")
+#mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_single_plants_nuts4_2017_based.csv"), sep = ";")
+#mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_syn_mnes_nuts4_2017_based.csv"), sep = ";")
 
 
 # remove self loops and repeated pairs
@@ -191,7 +194,7 @@ stargazer(egk_m01,
           porter_m02,
           porter_m03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_porter_baseline_", year, "_", region, ".html"))
+          out = paste0("../outputs/regression_tables/local_egk_porter_single_plants_", year, "_", region, ".html"))
 
 
 # set up the IV part here
@@ -323,7 +326,8 @@ stargazer(egk_mm01,
           egk_mm02,
           egk_mm03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_mne_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_syn_egk_mne_", year, "_", region, version, ".html"))
+          #out = paste0("../outputs/regression_tables/local_egk_mne_", year, "_", region, version, ".html"))
 
 
 # mne / domestic models -- porter
@@ -342,7 +346,7 @@ stargazer(porter_mm01,
           column.sep.width = "10pt",
           covariate.labels = c("IO connections",
                                "Labor flow"),
-          out = paste0("../outputs/regression_tables/local_porter_mne_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_syn_porter_mne_", year, "_", region, version, ".html"))
 
 
 
@@ -364,6 +368,7 @@ stargazer(inter01,
                                "Labor flow",
                                "IO connections x Labor flow"),
           out = paste0("../outputs/regression_tables/local_egk_porter_interacttion", year, "_", region, version, ".html"))
+          
 
 
 
@@ -410,7 +415,8 @@ stargazer(p_inter01,
           covariate.labels = c("IO connections",
                                "Labor flow",
                                "IO connections x Labor flow"),
-          out = paste0("../outputs/regression_tables/local_porter_interaction_", year, "_", region, version, ".html"))
+          #out = paste0("../outputs/regression_tables/local_porter_interaction_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_syn_porter_interaction_", year, "_", region, version, ".html"))
 
 summary(p_inter05 <- lm(coagg_porter ~ io01 * labor01, data = mdf3))
 summary(p_inter06 <- lm(coagg_porter_mne ~ io01 * labor01, data = mdf3))
@@ -422,7 +428,8 @@ stargazer(p_inter05,
           p_inter07,
           p_inter08,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_porter_interaction01_", year, "_", region, version, ".html"))
+          #out = paste0("../outputs/regression_tables/local_porter_interaction01_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/local_syn_porter_interaction01_", year, "_", region, version, ".html"))
 
 
 
