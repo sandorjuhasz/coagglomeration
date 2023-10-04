@@ -18,6 +18,11 @@ ind <- 3
 year <- 2017
 version <- ""
 
+
+# wiot dataset
+iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
+
+
 em <- list()
 pm <- list()
 for(r in 1:length(region_codes)){
@@ -38,7 +43,8 @@ for(r in 1:length(region_codes)){
   mdf3$lab_standard <- scale(mdf3$sr_norm)
   mdf3$ind1_2d <- mdf3$ind1 %/% 10
   mdf3$ind2_2d <- mdf3$ind2 %/% 10
-  
+  mdf3$swe_lab_standard <- scale(mdf3$swe_sr_norm)
+  mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
   
   # add WIOT HUN data
   hun_wiot <- fread("../outputs/wiot_edgelist_2_digit.csv") %>%
@@ -62,10 +68,36 @@ for(r in 1:length(region_codes)){
   mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
   
   
+  # list of IVs -- first element with ind IDs
+  iv_df <- dplyr::select(subset(iv_el, c_code == "USA"), ind1, ind2, iv_io_norm)
+  colnames(iv_df) <- c("ind1", "ind2", "USA")
+  
+  mdf3 <- merge(
+    mdf3,
+    iv_df,
+    by.x = c("ind1_2d", "ind2_2d"),
+    by.y = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  mdf3$iv_io_standard <- scale(mdf3$USA)
+  
   # baseline models -- EGK and Porter
   em[[r]] <- lm(egk_coagg ~ io_standard + lab_standard, data = mdf3)
   pm[[r]] <- lm(coagg_porter ~ io_standard + lab_standard, data = mdf3)
+  
+  
+  # iv models
+  summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+  summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+  
+  civ_egk <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
+  civ_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
+  stargazer(civ_egk, civ_porter,
+            dep.var.labels = c("EGK | coagg Porter"),
+            out = paste0("../outputs/regression_tables/", version, "local_iv_", year, "_", region_codes[r], ".html"))
 }
+
 
 stargazer(em[[1]],
           em[[2]],

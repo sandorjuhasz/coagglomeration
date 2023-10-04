@@ -89,7 +89,7 @@ mdf3$io_standard <- scale(mdf3$io_norm_wiot)
 
 
 # add wiot IVs for multiple countries
-if(multi_iv == TRUE){
+if(wiot_iv == TRUE){
   # wiot dataset
   iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
   
@@ -120,7 +120,7 @@ if(multi_iv == TRUE){
 
 
 # add US supply IV
-if(us_iv == TRUE){
+if(us_supply_iv == TRUE){
   iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
   
   mdf3 <- merge(
@@ -190,6 +190,8 @@ stargazer(egk_m01,
           porter_m02,
           porter_m03,
           omit.stat=c("f", "ser"),
+          dep.var.caption = "",
+          covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/", version, "local_egk_porter_", year, "_", region, ".html"))
 
 
