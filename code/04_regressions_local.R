@@ -215,8 +215,8 @@ stargazer(egk_mm01,
           egk_mm02,
           egk_mm03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_syn_egk_mne_", year, "_", region, version, ".html"))
-          #out = paste0("../outputs/regression_tables/local_egk_mne_", year, "_", region, version, ".html"))
+          #out = paste0("../outputs/regression_tables/local_syn_egk_mne_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_egk_mne_", year, "_", region, ".html"))
 
 
 # mne / domestic models -- porter
@@ -235,7 +235,7 @@ stargazer(porter_mm01,
           column.sep.width = "10pt",
           covariate.labels = c("IO connections",
                                "Labor flow"),
-          out = paste0("../outputs/regression_tables/local_syn_porter_mne_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_porter_mne_", year, "_", region, ".html"))
 
 
 
@@ -256,7 +256,7 @@ stargazer(inter01,
           covariate.labels = c("IO connections",
                                "Labor flow",
                                "IO connections x Labor flow"),
-          out = paste0("../outputs/regression_tables/local_egk_porter_interacttion", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_egk_porter_interacttion", year, "_", region, ".html"))
           
 
 
@@ -274,7 +274,7 @@ stargazer(egk_inter01,
           egk_inter02,
           egk_inter03,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_interaction_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_egk_interaction_", year, "_", region, ".html"))
 
 summary(egk_inter04 <- lm(egk_coagg ~ io01 * labor01, data = mdf3))
 summary(egk_inter05 <- lm(egk_coagg_mne ~ io01 * labor01, data = mdf3))
@@ -284,7 +284,7 @@ stargazer(egk_inter04,
           egk_inter05,
           egk_inter06,
           omit.stat=c("f", "ser"),
-          out = paste0("../outputs/regression_tables/local_egk_interaction01_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_egk_interaction01_", year, "_", region, ".html"))
 
 
 # interactions for mne / domestic -- porter
@@ -304,8 +304,8 @@ stargazer(p_inter01,
           covariate.labels = c("IO connections",
                                "Labor flow",
                                "IO connections x Labor flow"),
-          #out = paste0("../outputs/regression_tables/local_porter_interaction_", year, "_", region, version, ".html"))
-          out = paste0("../outputs/regression_tables/local_syn_porter_interaction_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_porter_interaction_", year, "_", region, ".html"))
+
 
 summary(p_inter05 <- lm(coagg_porter ~ io01 * labor01, data = mdf3))
 summary(p_inter06 <- lm(coagg_porter_mne ~ io01 * labor01, data = mdf3))
@@ -317,8 +317,7 @@ stargazer(p_inter05,
           p_inter07,
           p_inter08,
           omit.stat=c("f", "ser"),
-          #out = paste0("../outputs/regression_tables/local_porter_interaction01_", year, "_", region, version, ".html"))
-          out = paste0("../outputs/regression_tables/local_syn_porter_interaction01_", year, "_", region, version, ".html"))
+          out = paste0("../outputs/regression_tables/", version, "local_porter_interaction01_", year, "_", region, ".html"))
 
 
 
@@ -355,14 +354,15 @@ dev.off()
 
 
 # for interplots -- porter
-summary(porter_interplot <- lm(coagg_porter ~ io_norm * sr_norm, data = mdf3))
+#summary(porter_interplot <- lm(coagg_porter ~ io_norm * sr_norm, data = mdf3))
+summary(porter_interplot <- lm(coagg_porter ~ io_norm_wiot * sr_norm, data = mdf3))
 
 # interplot 1 
 title <- "interplot_porter_SR_transactions"
 file_name <- paste0("../figures/", title, "_", region, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
-interplot(m = porter_interplot, var1 = "sr_norm", var2 = "io_norm", size=3) +
+interplot(m = porter_interplot, var1 = "sr_norm", var2 = "io_norm_wiot", size=3) +
   xlab("IO transactions") +
   ylab("Estimated coefficient for\nlabor flow") +
   #theme_bw() +
@@ -377,7 +377,7 @@ title <- "interplot_porter_transactions_SR"
 file_name <- paste0("../figures/", title, "_", region, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
-interplot(m = porter_interplot, var1 = "io_norm", var2 = "sr_norm", size=3) +
+interplot(m = porter_interplot, var1 = "io_norm_wiot", var2 = "sr_norm", size=3) +
   xlab("Labor flow") +
   ylab("Estimated coefficient for\nIO transactions") +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
