@@ -19,8 +19,8 @@ year <- 2017
 manuf_focus <- FALSE
 manuf_and_services <- FALSE
 drop_agric <- FALSE
-drop_public <- FALSE
-us_supply_iv <- FALSE
+drop_public <- TRUE
+us_supply_iv <- TRUE
 wiot_iv <- TRUE
 c_codes <- c("USA", "SWE", "CZE")
 version <- "wiot_"
@@ -204,6 +204,22 @@ c_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 stargazer(c_egk, c_porter,
           dep.var.labels = c("EGK | coagg Porter"),
           out = paste0("../outputs/regression_tables/", version, "local_iv_", year, "_", region, ".html"))
+
+
+iv_mdf3 <- subset(mdf3, ind1_2d != ind2_2d)
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | USA + swe_lab_standard, data = iv_mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | USA + swe_lab_standard, data = iv_mdf3))
+
+
+
+
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+c_egk <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
+c_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
+stargazer(c_egk, c_porter,
+          dep.var.labels = c("EGK | coagg Porter"),
+          out = paste0("../outputs/regression_tables/", "us_supply_as_iv_", "local_iv_", year, "_", region, ".html"))
 
 
 

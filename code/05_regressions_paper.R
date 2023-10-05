@@ -16,15 +16,18 @@ library(cowplot)
 region_codes <- c("nuts3", "nuts4", "city")
 ind <- 3
 year <- 2017
-version <- ""
+version <- "us_supply_iv_"
 
 
 # wiot dataset
 iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
+iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
 
 
 em <- list()
 pm <- list()
+ive <- list()
+ivp <- list()
 for(r in 1:length(region_codes)){
   # file from OC
   mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region_codes[r], "_", year, "_based.csv"), sep = ";")
@@ -64,9 +67,18 @@ for(r in 1:length(region_codes)){
   mdf3$io_standard <- scale(mdf3$io_norm_wiot)
   
   
+  # add US supply table
+  mdf3 <- merge(
+    mdf3,
+    dplyr::select(iv_us, ind1, ind2, iv_io_norm) %>% rename(iv_us_supply = iv_io_norm),
+    by = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+  
   # drop rows with MNE / domestic NAs -- create an equal sample across different models
   mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
-  
+  #mdf3 <- subset(mdf3, ind1_2d != ind2_2d)
   
   # list of IVs -- first element with ind IDs
   iv_df <- dplyr::select(subset(iv_el, c_code == "USA"), ind1, ind2, iv_io_norm)
@@ -88,14 +100,14 @@ for(r in 1:length(region_codes)){
   
   
   # iv models
-  summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
-  summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+  #iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3)
+  #iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3)
+  iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_us_supply + swe_lab_standard, data = mdf3)
+  iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_us_supply + swe_lab_standard, data = mdf3)
   
-  civ_egk <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
-  civ_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
-  stargazer(civ_egk, civ_porter,
-            dep.var.labels = c("EGK | coagg Porter"),
-            out = paste0("../outputs/regression_tables/", version, "local_iv_", year, "_", region_codes[r], ".html"))
+  
+  ive[[r]] <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
+  ivp[[r]] <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 }
 
 
@@ -109,4 +121,18 @@ stargazer(em[[1]],
           dep.var.caption = "",
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/", version, "egk_porter_baseline_", year, "_", region_codes[r], ".html"))
+
+
+stargazer(ive[[1]],
+          ive[[2]],
+          ive[[3]],
+          ivp[[1]],
+          ivp[[2]],
+          ivp[[3]],
+          omit.stat=c("f", "ser"),
+          dep.var.caption = "",
+          covariate.labels = c("IO connections", "Labor flow"),
+          out = paste0("../outputs/regression_tables/", version, "iv_egk_porter_baseline_", year, "_", region_codes[r], ".html"))
+
+
 
