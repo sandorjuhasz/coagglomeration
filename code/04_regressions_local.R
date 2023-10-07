@@ -19,9 +19,10 @@ year <- 2017
 manuf_focus <- FALSE
 manuf_and_services <- FALSE
 drop_agric <- FALSE
-drop_public <- TRUE
-us_supply_iv <- TRUE
-wiot_iv <- TRUE
+drop_public <- FALSE
+us_supply_iv <- FALSE
+wiot_avg_iv <- TRUE
+wiot_iv <- FALSE
 c_codes <- c("USA", "SWE", "CZE")
 version <- "wiot_"
 
@@ -119,6 +120,24 @@ if(wiot_iv == TRUE){
 }
 
 
+
+# add avg wiot IV
+if(wiot_avg_iv == TRUE){
+  wiot_avg_el <- fread("../outputs/wiot_avg_edgelist_2_digit.csv")
+  wiot_avg_el <- rename(wiot_avg_el, iv_avg_io_norm = iv_io_norm)
+  
+  mdf3 <- merge(
+    mdf3,
+    wiot_avg_el,
+    by.x = c("ind1_2d", "ind2_2d"),
+    by.y = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE
+  )
+}
+
+
+
 # add US supply IV
 if(us_supply_iv == TRUE){
   iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
@@ -175,6 +194,7 @@ mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
 summary(egk_m01 <- lm(egk_coagg ~ io_standard, data = mdf3))
 summary(egk_m02 <- lm(egk_coagg ~ lab_standard, data = mdf3))
 summary(egk_m03 <- lm(egk_coagg ~ io_standard + lab_standard, data = mdf3))
+#summary(egk_m03 <- lm(egk_coagg ~ io_standard_vat + lab_standard, data = mdf3))
 #summary(egk_m04 <- lm(egk_coagg ~ io_standard + lab_standard + log_nr_firms1 + log_nr_firms2, data = mdf3))
 
 # baseline models -- Porter
@@ -220,6 +240,15 @@ c_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
 stargazer(c_egk, c_porter,
           dep.var.labels = c("EGK | coagg Porter"),
           out = paste0("../outputs/regression_tables/", "us_supply_as_iv_", "local_iv_", year, "_", region, ".html"))
+
+
+
+# avg WIOT IV test
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard_vat + lab_standard | iv_avg_io_norm + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard_vat + lab_standard | iv_avg_io_norm + swe_lab_standard, data = mdf3))
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_avg_io_norm + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_avg_io_norm + swe_lab_standard, data = mdf3))
+
 
 
 
