@@ -180,3 +180,16 @@ write.table(el_list, "../outputs/wiot_edgelist_2_digit.csv", sep=";", row.names 
 
 
 
+
+# create an average across countries table
+el_list <- fread("../outputs/wiot_edgelist_2_digit.csv")
+
+avg_el <- el_list %>%
+  group_by(ind1, ind2) %>%
+  summarise(iv_io_norm = mean(iv_io_norm)) %>%
+  data.table()
+
+write.table(avg_el, "../outputs/wiot_avg_edgelist_2_digit.csv", sep=";", row.names = FALSE)
+
+
+
