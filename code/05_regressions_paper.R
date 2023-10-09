@@ -24,6 +24,10 @@ iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
 iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
 
 
+
+
+### --- table 1 OLS and table 2 IV
+
 em <- list()
 pm <- list()
 ive <- list()
@@ -135,6 +139,32 @@ stargazer(ive[[1]],
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/", version, "iv_egk_porter_baseline_", year, "_", region_codes[r], ".html"))
+
+
+
+
+### --- SI -- first stage IV (and related descriptives)
+
+
+
+
+### --- SI -- transaction data OLS
+
+
+
+
+### --- SI -- single plant firms OLS
+
+
+
+
+### --- SI -- synthetic MNE OLS
+
+
+
+
+### --- SI -- without Budapest OLS
+
 
 
 
