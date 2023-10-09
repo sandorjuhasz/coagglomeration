@@ -119,6 +119,7 @@ stargazer(em[[1]],
           pm[[3]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
+          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/", version, "egk_porter_baseline_", year, "_", region_codes[r], ".html"))
 
@@ -131,6 +132,7 @@ stargazer(ive[[1]],
           ivp[[3]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
+          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/", version, "iv_egk_porter_baseline_", year, "_", region_codes[r], ".html"))
 
