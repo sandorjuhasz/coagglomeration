@@ -10,7 +10,7 @@ library(readxl)
 # parameters
 region <- "nuts4"
 year <- 2017
-supp_round <- TRUE
+supp_round <- FALSE
 
 
 
@@ -26,6 +26,7 @@ isic_nace <- fread("../data/crosswalk_tables/ISIC4_NACE2.txt")
 
 # import supply table NAICS correction
 naics_supp_naics <- data.table(read_xlsx("../data/crosswalk_tables/naics_correction_230927.xlsx", sheet = 1))
+
 
 # import raw data -- already transformed to .csv from the original .xls
 supp_raw <- fread("../data/io_external/us_io_supply2012_naics2012.csv")
@@ -327,6 +328,5 @@ full_supp <- full_supp %>%
 
 
 write.table(full_supp, "../outputs/us_supply_3digit_nace_nace.csv", sep=";", row.names = FALSE)
-
 
 
