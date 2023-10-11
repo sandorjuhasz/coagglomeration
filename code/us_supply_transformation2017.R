@@ -15,10 +15,8 @@ supp_round <- FALSE
 
 
 # import crosswalk tables
-naics_supp_naics <- data.table(read_xlsx("../data/crosswalk_tables/naics_correction_230927.xlsx", sheet = 1))
 naics_isic <- fread("../data/crosswalk_tables/NAICS2012US-ISIC4.txt")
 isic_nace <- fread("../data/crosswalk_tables/ISIC4_NACE2.txt")
-
 
 
 
@@ -347,3 +345,42 @@ naics_isic17 <- fread("../data/crosswalk_tables/2017_NAICS_to_ISIC_4_simplified.
 naics_isic17$digits_naics <- nchar(as.character(naics_isic17$naics2017))
 naics_isic17$digits_isic <- nchar(as.character(naics_isic17$isic4))
 naics_isic17 <- subset(naics_isic17, digits_naics == 6 & digits_isic == 4)
+
+
+supp_raw17 <- fread("../data/io_external/us_io_supply2017_naics2012.csv", )
+dim(supp_raw17)
+
+supp_df <- Melt(as.matrix(supp_raw17, rownames = 1))
+colnames(supp_df) <- c("ind1", "ind2", "value")
+length(unique(supp_df$ind1))
+length(unique(supp_df$ind2))
+supp_df$value[is.na(supp_df$value) == 1] <- 0
+
+
+# import supply table NAICS correction
+naics_supp_naics <- data.table(read_xlsx("../data/crosswalk_tables/naics_correction_230927.xlsx", sheet = 1))
+
+supp_corr <- merge(
+  supp_df,
+  naics_supp_naics,
+  by.x = "ind1",
+  by.y = "naics_supp",
+  all.x = TRUE,
+  all.y = FALSE
+)
+supp_corr <- merge(
+  supp_corr,
+  naics_supp_naics,
+  by.x = "ind2",
+  by.y = "naics_supp",
+  all.x = TRUE,
+  all.y = FALSE,
+  suffixes = c("1", "2")
+)
+subset(supp_corr, is.na(naics_code1)==1)
+# what is 333914??
+
+subset(supp_corr, is.na(naics_code1)==1 | is.na(naics_code2)==1)
+nrow(subset(supp_corr, is.na(naics_code1)==1 | is.na(naics_code2)==1))
+
+# drop NAs and redo the same exercise -- only 
