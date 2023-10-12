@@ -13,8 +13,12 @@ year <- 2017
 supp_round <- FALSE
 
 
+# ISSUE description -- NAICS supply codes are NAICS2017 based
+# we use NAICS 2012 supply corrections
+
 
 # import crosswalk tables
+#naics_isic <- fread("../data/crosswalk_tables/2017_NAICS_to_ISIC_4_simplified.csv")
 naics_isic <- fread("../data/crosswalk_tables/NAICS2012US-ISIC4.txt")
 isic_nace <- fread("../data/crosswalk_tables/ISIC4_NACE2.txt")
 
@@ -27,21 +31,13 @@ naics_supp_naics <- data.table(read_xlsx("../data/crosswalk_tables/naics_correct
 
 
 # import raw data -- already transformed to .csv from the original .xls
-supp_raw <- fread("../data/io_external/us_io_supply2012_naics2012.csv")
-dim(supp_raw)
 supp_raw17 <- fread("../data/io_external/us_io_supply2017_naics2012.csv")
 dim(supp_raw17)
 
 
 
-v12 <- c(colnames(supp_raw))
-v17 <- c(colnames(supp_raw17))
-setdiff(v12, v17)
-
-
-
 # matrix to edgelist -- NOTE -- strange dimensions
-supp_df <- Melt(as.matrix(supp_raw, rownames = 1))
+supp_df <- Melt(as.matrix(supp_raw17, rownames = 1))
 colnames(supp_df) <- c("ind1", "ind2", "value")
 length(unique(supp_df$ind1))
 length(unique(supp_df$ind2))
@@ -287,11 +283,6 @@ full_el$ind2 <- as.numeric(full_el$ind2)
 
 
 
-
-
-
-
-
 full_supp <- merge(
   full_el,
   supp_final,
@@ -334,7 +325,13 @@ full_supp <- full_supp %>%
 
 
 
-write.table(full_supp, "../outputs/us_supply_3digit_nace_nace.csv", sep=";", row.names = FALSE)
+write.table(full_supp, paste0("../outputs/us_supply_3digit_nace_nace_", year, ".csv"), sep=";", row.names = FALSE)
+
+
+
+
+full_supp12 <- fread("../outputs/us_supply_3digit_nace_nace.csv")
+full_supp
 
 
 
