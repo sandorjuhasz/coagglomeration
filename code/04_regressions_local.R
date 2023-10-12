@@ -22,8 +22,8 @@ drop_agric <- FALSE
 drop_public <- FALSE
 us_supply_iv <- FALSE
 wiot_avg_iv <- FALSE
-wiot_iv <- FALSE
-ecu_iv <- TRUE
+wiot_iv <- TRUE
+ecu_iv <- FALSE
 c_codes <- c("USA", "SWE", "CZE")
 version <- "oc_oct_n2_"
 
@@ -32,8 +32,8 @@ version <- "oc_oct_n2_"
 
 
 # file from OC
-#mdf3 <- fread(paste0("../data/oc12_2023_oct_2/03_data_output_emp_porter_", region, "_2015_", year, "_based.csv"), sep = ";")
-mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
+mdf3 <- fread(paste0("../data/oc12_2023_oct_2/03_data_output_emp_porter_", region, "_2015_", year, "_based.csv"), sep = ";")
+#mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_without_Budapest_nuts4_2017_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_single_plants_nuts4_2017_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_syn_mnes_nuts4_2017_based.csv"), sep = ";")
@@ -92,6 +92,14 @@ mdf3 <- merge(
 )
 mdf3$io_standard_wiot <- scale(mdf3$io_norm_wiot)
 
+
+
+# average 2 digit VAT
+mdf3 <- mdf3 %>%
+  group_by(ind1_1d, ind2_2d) %>%
+  mutate(avg_io_norm = mean(io_norm)) %>%
+  data.table()
+mdf3$avg_io_standard_vat <- scale(mdf3$avg_io_norm)
 
 
 # add wiot IVs for multiple countries
@@ -212,7 +220,7 @@ if(drop_agric == TRUE){
 mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
 
 
-summary(ecu00 <- lm(io_standard_vat ~ iv_io_standard, data = mdf3))
+
 
 
 ### 2 ----- baseline models
@@ -221,6 +229,7 @@ summary(ecu00 <- lm(io_standard_vat ~ iv_io_standard, data = mdf3))
 summary(egk_m01 <- lm(egk_coagg ~ io_standard_wiot, data = mdf3))
 summary(egk_m02 <- lm(egk_coagg ~ lab_standard, data = mdf3))
 summary(egk_m03 <- lm(egk_coagg ~ io_standard_wiot + lab_standard, data = mdf3))
+#summary(egk_m03 <- lm(egk_coagg ~ avg_io_standard + lab_standard, data = mdf3))
 #summary(egk_m03 <- lm(egk_coagg ~ io_standard_vat + lab_standard, data = mdf3))
 #summary(egk_m04 <- lm(egk_coagg ~ io_standard + lab_standard + log_nr_firms1 + log_nr_firms2, data = mdf3))
 
@@ -228,6 +237,7 @@ summary(egk_m03 <- lm(egk_coagg ~ io_standard_wiot + lab_standard, data = mdf3))
 summary(porter_m01 <- lm(coagg_porter ~ io_standard_wiot, data = mdf3))
 summary(porter_m02 <- lm(coagg_porter ~ lab_standard, data = mdf3))
 summary(porter_m03 <- lm(coagg_porter ~ io_standard_wiot + lab_standard, data = mdf3))
+#summary(egk_m03 <- lm(coagg_porter ~ avg_io_standard + lab_standard, data = mdf3))
 #summary(porter_m03 <- lm(egk_coagg ~ io_standard_vat + lab_standard, data = mdf3))
 
 stargazer(egk_m01,
@@ -268,6 +278,21 @@ summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard_wiot + lab_standard
 
 
 
+# first and second stage separately
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard_wiot | USA, data = mdf3))
+
+# first stage with lm
+summary(first_stage <- lm(io_standard_wiot ~ USA, data = mdf3))
+mdf3$first_stage_pred <- predict(first_stage, newdata = mdf3)
+cor(mdf3$io_standard_wiot, mdf3$first_stage_pred)
+
+# second stage with lm
+summary(second_stage <- lm(egk_coagg ~ first_stage_pred, data = mdf3))
+
+stargazer(first_stage, second_stage, type = "text", column.labels = c("First stage", "Second stage"))
+
+
+
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
 summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
 c_egk <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
@@ -293,6 +318,49 @@ summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard_vat + lab_standard 
 # ECU data as IV
 summary(iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard_vat + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
 summary(iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard_vat + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3))
+
+
+# avg VAT IO -- USA test
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ avg_io_standard_vat + lab_standard | USA + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ avg_io_standard_vat + lab_standard | USA + swe_lab_standard, data = mdf3))
+
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ avg_io_standard_vat + lab_standard | SWE + swe_lab_standard, data = mdf3))
+summary(porter_m03 <- lm(coagg_porter ~ avg_io_standard_vat + lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ avg_io_standard_vat + lab_standard | SWE + swe_lab_standard, data = mdf3))
+
+summary(first_stage <- lm(avg_io_standard_vat ~ SWE, data = mdf3))
+mdf3$first_stage_pred <- predict(first_stage, newdata = mdf3)
+cor(mdf3$avg_io_standard_vat, mdf3$first_stage_pred)
+summary(second_stage <- lm(egk_coagg ~ first_stage_pred, data = mdf3))
+
+stargazer(first_stage, second_stage, type = "text", column.labels = c("First stage", "Second stage"))
+
+
+
+
+summary(iv_egk <- ivreg::ivreg(egk_coagg ~ avg_io_standard_vat + lab_standard | CZE + swe_lab_standard, data = mdf3))
+summary(iv_porter <- ivreg::ivreg(coagg_porter ~ avg_io_standard_vat + lab_standard | CZE + swe_lab_standard, data = mdf3))
+
+
+
+c_egk <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
+c_porter <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
+
+
+# first stage with lm
+summary(first_stage <- lm(io_standard_wiot ~ USA, data = mdf3))
+mdf3$first_stage_pred <- predict(first_stage, newdata = mdf3)
+cor(mdf3$io_standard_wiot, mdf3$first_stage_pred)
+
+# second stage with lm
+summary(second_stage <- lm(egk_coagg ~ first_stage_pred, data = mdf3))
+
+stargazer(first_stage, second_stage, type = "text", column.labels = c("First stage", "Second stage"))
+
+
+
+
+
 
 
 
