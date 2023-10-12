@@ -15,7 +15,8 @@ year <- 2017
 
 
 # import aggregate table for ECU
-edf <- fread("../data/io_external/sector_sector_interactions_fromVAT_22300.csv")
+#edf <- fread("../data/io_external/sector_sector_interactions_fromVAT_22300.csv")
+edf <- fread("../data/io_external/sector_sector_interactions_fromVAT_0.csv")
 
 
 # drop first letters
@@ -175,6 +176,7 @@ iv_full <- iv_full %>%
 
 
 
-write.table(iv_full, "../outputs/ecu_vat_iv.csv", sep=";", row.names = FALSE)
+#write.table(iv_full, "../outputs/ecu_vat_iv.csv", sep=";", row.names = FALSE)
+write.table(iv_full, "../outputs/ecu_vat_iv_no_limit.csv", sep=";", row.names = FALSE)
 
 
