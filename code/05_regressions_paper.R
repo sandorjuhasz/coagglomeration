@@ -31,7 +31,7 @@ version <- ""
 
 
 
-### --- baseline setting for local tests
+### --- 00 -- baseline setting for local tests
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
 
@@ -40,7 +40,7 @@ summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data 
 
 
 
-### --- table 1 OLS and table 2 IV
+### --- Table 1 OLS and Table 2 IV
 
 region_codes <- c("nuts3", "nuts4", "city")
 em <- list()
@@ -97,7 +97,7 @@ stargazer(ive[[1]],
 
 
 
-### --- table 3 OLS with interactions
+### --- Table 3 OLS with interactions
 region_codes <- c("nuts3", "nuts4", "city")
 eim <- list()
 eim01 <- list()
@@ -130,7 +130,7 @@ stargazer(
 
 
 
-### --- interplot figure
+### --- Figure 2 -- interplots
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
 
@@ -190,7 +190,7 @@ dev.off()
 
 
 
-### --- table 4 OLS for MNE / domestic
+### --- Table 4 OLS for MNE / domestic
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
 
@@ -227,9 +227,44 @@ stargazer(
 ### --- table 5 OLS for MNE / domestic -- synthetic MNEs
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 path_syn <- paste0("../data/oc13_2023_oct_3/04c_oc_data_syn_MNEs_", version, region_level, "_", focal_year, ".csv")
-
 reg_df <- prep_baseline_regression_table(path)
 alt_df <- prep_alternative_table(path, path_syn)
+
+# common ground for comparable regressions
+common_ind_pairs <- intersect(unique(reg_df$ind_pair_id), unique(alt_df$ind_pair_id))
+reg_df <- subset(reg_df, ind_pair_id %in% common_ind_pairs)
+alt_df <- subset(alt_df, ind_pair_id %in% common_ind_pairs)
+
+summary(pm01 <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm02 <- lm(coagg_porter_rca01_mne_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm03 <- lm(coagg_porter_rca01_local_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm04 <- lm(coagg_porter_rca01_mixed_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+
+summary(pms01 <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = alt_df))
+summary(pms02 <- lm(coagg_porter_rca01_mne_stand ~ io_wiot_hun_stand + lab_stand, data = alt_df))
+summary(pms03 <- lm(coagg_porter_rca01_local_stand ~ io_wiot_hun_stand + lab_stand, data = alt_df))
+summary(pms04 <- lm(coagg_porter_rca01_mixed_stand ~ io_wiot_hun_stand + lab_stand, data = alt_df))
+
+
+
+stargazer(
+  #pm01,
+  #pms01,
+  pm02,
+  pms02,
+  pm03,
+  pms03,
+  pm04,
+  pms04,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "Coagglomeration (LC)",
+  dep.var.labels = c("M-M", "sM-sM", "D-D", "sD-sD", "M-D", "sM-sD"),
+  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  out = paste0("../outputs/regression_tables/05_ols_foreign_domestic_syn.html")
+)
+
+
+
 
 
 
@@ -264,10 +299,32 @@ summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot01 * labor01, data = reg
 
 
 
-### --- SI -- single plant firms OLS
+### --- SI -- single plant firms and without BP OLS
+path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+path_BP <- paste0("../data/oc13_2023_oct_3/04b_oc_data_budapest_excluded_", version, region_level, "_", focal_year, ".csv")
+path_single <- paste0("../data/oc13_2023_oct_3/04d_oc_data_single_plant_", version, region_level, "_", focal_year, ".csv")
+
+bpo_df <- prep_alternative_table(path, path_BP)
+summary(em_bp <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = bpo_df))
+summary(pm_bp <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = bpo_df))
+
+single_df <- prep_alternative_table(path, path_single)
+summary(em_sing <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = single_df))
+summary(pm_sing <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = single_df))
 
 
 
+stargazer(
+  em_bp,
+  em_sing,
+  pm_bp,
+  pm_sing,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = c("Coagglomeration (EGK)"),
+  dep.var.labels = c("Excl. BP", "Single plant", "Excl. BP", "Single plant"),
+  covariate.labels = c("IO connections", "Labor flow"),
+  out = paste0("../outputs/regression_tables/si_ols_without_bp_single_plant.html")
+)
 
 
 
