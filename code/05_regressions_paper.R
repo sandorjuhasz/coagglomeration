@@ -18,8 +18,8 @@ source("../code/04_functions_for_regressions.R")
 # parameters
 focal_year <- 2017
 
-region_level <- "nuts3"
-#region_level <- "nuts4"
+#region_level <- "nuts3"
+region_level <- "nuts4"
 #region_level <- "city"
 
 version <- ""
@@ -95,9 +95,35 @@ stargazer(ive[[1]],
 
 
 
+
+
 ### --- table 3 OLS with interactions
+region_codes <- c("nuts3", "nuts4", "city")
+eim <- list()
+pim <- list()
+for(r in 1:length(region_codes)){
+  # file from OC
+  path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
+  reg_df <- prep_baseline_regression_table(path)
+  
+  # baseline models -- EGK and Porter
+  eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pim[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+}  
 
-
+stargazer(
+  #eim[[1]],
+  #eim[[2]],
+  #eim[[3]],
+  pim[[1]],
+  pim[[2]],
+  pim[[3]],
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  dep.var.labels = c("Coagglomeration (corr)"),
+  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  out = paste0("../outputs/regression_tables/03_interactions.html")
+)
 
 
 
