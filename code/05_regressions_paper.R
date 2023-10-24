@@ -189,6 +189,56 @@ dev.off()
 
 
 
+
+### --- table 4 OLS for MNE / domestic
+path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+summary(pm01 <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm02 <- lm(coagg_porter_rca01_mne_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm03 <- lm(coagg_porter_rca01_local_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm04 <- lm(coagg_porter_rca01_mixed_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+
+summary(pmi01 <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df))
+summary(pmi02 <- lm(coagg_porter_rca01_mne_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df))
+summary(pmi03 <- lm(coagg_porter_rca01_local_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df))
+summary(pmi04 <- lm(coagg_porter_rca01_mixed_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df))
+
+
+stargazer(
+  pm01,
+  pmi01,
+  pm02,
+  pmi02,
+  pm03,
+  pmi03,
+  pm04,
+  pmi04,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "Coagglomeration (LC)",
+  dep.var.labels = c("All", "MNE-MNE", "Dom-Dom", "MNE-Dom", "All", "MNE-MNE", "Dom-Dom", "MNE-Dom"),
+  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  out = paste0("../outputs/regression_tables/04_ols_foreign_domestic.html")
+)
+
+
+
+
+### --- table 5 OLS for MNE / domestic -- synthetic MNEs
+path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+path_syn <- paste0("../data/oc13_2023_oct_3/04c_oc_data_syn_MNEs_", version, region_level, "_", focal_year, ".csv")
+
+reg_df <- prep_baseline_regression_table(path)
+alt_df <- prep_alternative_table(path, path_syn)
+
+
+
+
+
+
+
+
+
 ### --- SI -- interaction of dummies
 region_level <- "nuts4"
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
@@ -197,6 +247,9 @@ reg_df <- prep_baseline_regression_table(path)
 summary(i01_egk <- lm(egk_coagg_stand ~ io_wiot01 * labor01, data = reg_df))
 summary(i01_cpe <- lm(coagg_porter_emp_stand ~ io_wiot01 * labor01, data = reg_df))
 summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot01 * labor01, data = reg_df))
+
+
+
 
 
 
@@ -216,7 +269,7 @@ summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot01 * labor01, data = reg
 
 
 
-### --- SI -- synthetic MNE OLS
+
 
 
 
