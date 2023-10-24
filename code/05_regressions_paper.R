@@ -1,4 +1,6 @@
 # regression tables for the paper -- sandorjuhasz
+# setup is the same as in the Databank
+
 
 
 library(data.table)
@@ -9,109 +11,59 @@ library(lmtest)
 library(sandwich)
 library(interplot)
 library(cowplot)
-#source("../scripts/m00_functions.R")
+source("../code/04_functions_for_regressions.R")
+
 
 
 # parameters
-region_codes <- c("nuts3", "nuts4", "city")
-ind <- 3
-year <- 2017
-version <- "us_supply_iv_"
+focal_year <- 2017
+
+region_level <- "nuts3"
+#region_level <- "nuts4"
+#region_level <- "city"
+
+version <- ""
+#version <- "budapest_excluded_"
+#version <- "syn_MNEs_"
+#version <- "single_plant_"
+#version <- "manuf"
+#version <- "serv"
 
 
-# wiot dataset
-iv_el <- fread("../outputs/wiot_edgelist_2_digit.csv")
-iv_us <- fread("../outputs/us_supply_3digit_nace_nace.csv")
 
+### --- baseline setting for local tests
+path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+summary(em <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
 
 
 
 ### --- table 1 OLS and table 2 IV
 
+region_codes <- c("nuts3", "nuts4", "city")
 em <- list()
 pm <- list()
 ive <- list()
 ivp <- list()
 for(r in 1:length(region_codes)){
   # file from OC
-  mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region_codes[r], "_", year, "_based.csv"), sep = ";")
-  
-  
-  # remove self loops and repeated pairs
-  mdf3 <- subset(mdf3, ind1 < ind2)
-  
-  
-  # variable manipulation -- for regressions
-  mdf3$egk_coagg <- scale(mdf3$egk_coagg)
-  mdf3$coagg_porter <- scale(mdf3$coagg_porter)
-  mdf3$coagg_porter_mne <- scale(mdf3$coagg_porter_mne)
-  mdf3$coagg_porter_local <- scale(mdf3$coagg_porter_local)
-  mdf3$coagg_porter_mne_local <- scale(mdf3$coagg_porter_mne_local)
-  mdf3$lab_standard <- scale(mdf3$sr_norm)
-  mdf3$ind1_2d <- mdf3$ind1 %/% 10
-  mdf3$ind2_2d <- mdf3$ind2 %/% 10
-  mdf3$swe_lab_standard <- scale(mdf3$swe_sr_norm)
-  mdf3$ind_pair_id <- paste0(mdf3$ind1, "_", mdf3$ind2)
-  
-  # add WIOT HUN data
-  hun_wiot <- fread("../outputs/wiot_edgelist_2_digit.csv") %>%
-    filter(c_code == "HUN") %>%
-    dplyr::select(ind1, ind2, iv_io_norm) %>%
-    rename(io_norm_wiot = iv_io_norm) %>%
-    data.table()
-  
-  mdf3 <- merge(
-    mdf3,
-    hun_wiot,
-    by.x = c("ind1_2d", "ind2_2d"),
-    by.y = c("ind1", "ind2"),
-    all.x = TRUE,
-    all.y = FALSE
-  )
-  mdf3$io_standard <- scale(mdf3$io_norm_wiot)
-  
-  
-  # add US supply table
-  mdf3 <- merge(
-    mdf3,
-    dplyr::select(iv_us, ind1, ind2, iv_io_norm) %>% rename(iv_us_supply = iv_io_norm),
-    by = c("ind1", "ind2"),
-    all.x = TRUE,
-    all.y = FALSE
-  )
-  
-  # drop rows with MNE / domestic NAs -- create an equal sample across different models
-  mdf3 <- subset(mdf3, is.na(coagg_porter_mne)==0 & is.na(coagg_porter_local)==0)
-  #mdf3 <- subset(mdf3, ind1_2d != ind2_2d)
-  
-  # list of IVs -- first element with ind IDs
-  iv_df <- dplyr::select(subset(iv_el, c_code == "USA"), ind1, ind2, iv_io_norm)
-  colnames(iv_df) <- c("ind1", "ind2", "USA")
-  
-  mdf3 <- merge(
-    mdf3,
-    iv_df,
-    by.x = c("ind1_2d", "ind2_2d"),
-    by.y = c("ind1", "ind2"),
-    all.x = TRUE,
-    all.y = FALSE
-  )
-  mdf3$iv_io_standard <- scale(mdf3$USA)
+  path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
+  reg_df <- prep_baseline_regression_table(path)
   
   # baseline models -- EGK and Porter
-  em[[r]] <- lm(egk_coagg ~ io_standard + lab_standard, data = mdf3)
-  pm[[r]] <- lm(coagg_porter ~ io_standard + lab_standard, data = mdf3)
+  em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
   
   
   # iv models
-  #iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3)
-  #iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_io_standard + swe_lab_standard, data = mdf3)
-  iv_egk <- ivreg::ivreg(egk_coagg ~ io_standard + lab_standard | iv_us_supply + swe_lab_standard, data = mdf3)
-  iv_porter <- ivreg::ivreg(coagg_porter ~ io_standard + lab_standard | iv_us_supply + swe_lab_standard, data = mdf3)
+  iv_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  iv_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
   
   
-  ive[[r]] <- coeftest(iv_egk, vcov = vcovCL, cluster = ~ind_pair_id)
-  ivp[[r]] <- coeftest(iv_porter, vcov = vcovCL, cluster = ~ind_pair_id)
+  ive[[r]] <- coeftest(iv_em, vcov = vcovCL, cluster = ~ind_pair_id)
+  ivp[[r]] <- coeftest(iv_pm, vcov = vcovCL, cluster = ~ind_pair_id)
 }
 
 
@@ -125,7 +77,7 @@ stargazer(em[[1]],
           dep.var.caption = "",
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
-          out = paste0("../outputs/regression_tables/", version, "egk_porter_baseline_", year, "_", region_codes[r], ".html"))
+          out = paste0("../outputs/regression_tables/01_ols.html"))
 
 
 stargazer(ive[[1]],
@@ -138,7 +90,14 @@ stargazer(ive[[1]],
           dep.var.caption = "",
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
-          out = paste0("../outputs/regression_tables/", version, "iv_egk_porter_baseline_", year, "_", region_codes[r], ".html"))
+          out = paste0("../outputs/regression_tables/02_iv.html"))
+
+
+
+
+### --- table 3 OLS with interactions
+
+
 
 
 
