@@ -53,13 +53,13 @@ for(r in 1:length(region_codes)){
   reg_df <- prep_baseline_regression_table(path)
   
   # baseline models -- EGK and Porter
-  em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
-  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   
   
   # iv models
-  iv_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
-  iv_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  iv_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand  + as.factor(ind1) + as.factor(ind2) | iv_wiot_mean_stand + iv_swe_lab_stand  + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  iv_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand  + as.factor(ind1) + as.factor(ind2) | iv_wiot_mean_stand + iv_swe_lab_stand  + as.factor(ind1) + as.factor(ind2), data = reg_df)
   
   
   ive[[r]] <- coeftest(iv_em, vcov = vcovCL, cluster = ~ind_pair_id)
@@ -75,6 +75,7 @@ stargazer(em[[1]],
           pm[[3]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
+          omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/01_ols.html"))
@@ -88,6 +89,7 @@ stargazer(ive[[1]],
           ivp[[3]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
+          omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/02_iv.html"))
@@ -279,13 +281,160 @@ region_level <- "nuts4"
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
 
-summary(i01_egk <- lm(egk_coagg_stand ~ io_wiot01 * labor01, data = reg_df))
-summary(i01_cpe <- lm(coagg_porter_emp_stand ~ io_wiot01 * labor01, data = reg_df))
-summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot01 * labor01, data = reg_df))
+summary(i01_egk <- lm(egk_coagg_stand ~ io_wiot01 * labor01 + as.factor(ind1) + as.factor(ind2), data = reg_df))
+summary(i01_cpe <- lm(coagg_porter_emp_stand ~ io3_stand * labor01, data = reg_df))
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot01 * labor01 + as.factor(ind1) + as.factor(ind2), data = reg_df))
+
+summary(i01_egk <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df))
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df))
+
+
+stargazer(
+  i01_egk,
+  i01_cpr,
+  omit.stat=c("f", "ser"),
+  omit = c("ind1", "ind2"),
+  out = paste0("../outputs/regression_tables/interaction_tests_cont.html")
+)
+
+
+
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df))
+
+
+# interplot 1 
+title <- "figure021_interplot_labor_IO_FE"
+file_name <- paste0("../figures/", title, "_", region_level, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = i01_cpr,
+                 var1 = "sr_norm",
+                 var2 = "io_wiot_hun",
+                 size = 3,
+                 xmin = -1,
+                 xmax = 1,
+                 rfill = "#6da3d0") +
+  xlab("IO connections") +
+  ylab("Estimated coefficient for\nlabor flow") +
+  #ylim(0, 0.5) +
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# interplot 2
+title <- "figure022_interplot_IO_labor_FE"
+file_name <- paste0("../figures/", title, "_", region_level, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+interplot(m = i01_cpr,
+                 var1 = "io_wiot_hun",
+                 var2 = "sr_norm",
+                 size = 3,
+                 xmin = -1,
+                 xmax = 1,
+                 rfill = "#6da3d0") +
+  xlab("Labor flow") +
+  ylab("Estimated coefficient for\nIO connections") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
 
 
 
 
+
+
+
+
+
+
+
+
+
+reg_df$abs0_io <- ifelse(reg_df$io_wiot_hun == -1, 0, 1)
+reg_df$abs0_lab <- ifelse(reg_df$sr_norm == -1, 0, 1)
+
+
+summary(i01_egk <- lm(egk_coagg_stand ~ abs0_io * abs0_lab, data = reg_df))
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ abs0_io * abs0_lab, data = reg_df))
+
+summary(i01_egk <- lm(egk_coagg_stand ~ abs0_lab + labor01, data = reg_df))
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ abs0_lab + labor01, data = reg_df))
+
+summary(i01_egk <- lm(egk_coagg_stand ~ abs0_io + io_wiot01, data = reg_df))
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ abs0_io + io_wiot01, data = reg_df))
+
+
+
+
+reg_df$d00 <- ifelse(
+  (reg_df$io_wiot_hun == -1) &
+  (reg_df$sr_norm == -1),
+  1,
+  0
+)
+reg_df$d01 <- ifelse(
+  (reg_df$io_wiot_hun == -1) &
+    (reg_df$sr_norm > -1 & reg_df$sr_norm < 0),
+  1,
+  0
+)
+reg_df$d02 <- ifelse(
+  (reg_df$io_wiot_hun == -1) &
+    (reg_df$sr_norm > 0),
+  1,
+  0
+)
+
+reg_df$d10 <- ifelse(
+  (reg_df$io_wiot_hun > -1 & reg_df$io_wiot_hun < 0) &
+    (reg_df$sr_norm == -1),
+  1,
+  0
+)
+reg_df$d20 <- ifelse(
+  (reg_df$io_wiot_hun > 0) &
+    (reg_df$sr_norm == -1),
+  1,
+  0
+)
+
+reg_df$d11 <- ifelse(
+  (reg_df$io_wiot_hun > -1 & reg_df$io_wiot_hun < 0) &
+  (reg_df$sr_norm > -1 & reg_df$sr_norm < 0),
+  1,
+  0
+)
+
+reg_df$d12 <- ifelse(
+  (reg_df$io_wiot_hun > -1 & reg_df$io_wiot_hun < 0) &
+  (reg_df$sr_norm > 0),
+  1,
+  0
+)
+
+reg_df$d21 <- ifelse(
+  (reg_df$io_wiot_hun > 0) &
+  (reg_df$sr_norm > -1 & reg_df$sr_norm < 0),
+  1,
+  0
+)
+
+reg_df$d22 <- ifelse(
+  (reg_df$io_wiot_hun > 0) &
+  (reg_df$sr_norm > 0),
+  1,
+  0
+)
+
+
+
+summary(i01_egk <- lm(egk_coagg_stand ~ d01 + d02 + d10 + d11 + d12 + d20 + d21 + d22 , data = reg_df))
+summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ d01 + d02 + d10 + d11 + d12 + d20 + d21 + d22 , data = reg_df))
 
 
 
