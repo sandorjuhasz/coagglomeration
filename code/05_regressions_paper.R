@@ -45,28 +45,31 @@ summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data 
 region_codes <- c("nuts3", "nuts4", "city")
 em <- list()
 pm <- list()
+emc <- list()
+pmc <- list()
 ive <- list()
 ivp <- list()
+ivec <- list()
+ivpc <- list()
 for(r in 1:length(region_codes)){
   # file from OC
   path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
   reg_df <- prep_baseline_regression_table(path)
   
   # baseline models -- EGK and Porter
-  em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  
-  
+  em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  emc[[r]] <- coeftest(em[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pmc[[r]] <- coeftest(pm[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   # iv models
-  iv_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand  + as.factor(ind1) + as.factor(ind2) | iv_wiot_mean_stand + iv_swe_lab_stand  + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  iv_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand  + as.factor(ind1) + as.factor(ind2) | iv_wiot_mean_stand + iv_swe_lab_stand  + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  ive[[r]] <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  ivp[[r]] <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
   
-  
-  ive[[r]] <- coeftest(iv_em, vcov = vcovCL, cluster = ~ind_pair_id)
-  ivp[[r]] <- coeftest(iv_pm, vcov = vcovCL, cluster = ~ind_pair_id)
+  ivec[[r]] <- coeftest(ive[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  ivpc[[r]] <- coeftest(ivp[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
 }
 
-
+# OLS output
 stargazer(em[[1]],
           em[[2]],
           em[[3]],
@@ -76,21 +79,38 @@ stargazer(em[[1]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           omit = c("ind1", "ind2"),
-          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
+          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/01_ols.html"))
 
+# OLS output
+stargazer(emc[[1]],
+          emc[[2]],
+          emc[[3]],
+          pmc[[1]],
+          pmc[[2]],
+          pmc[[3]],
+          omit.stat=c("f", "ser"),
+          dep.var.caption = "",
+          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+          covariate.labels = c("IO connections", "Labor flow"),
+          out = paste0("../outputs/regression_tables/01_ols_cse.html"))
 
-stargazer(ive[[1]],
-          ive[[2]],
-          ive[[3]],
-          ivp[[1]],
-          ivp[[2]],
-          ivp[[3]],
+
+
+
+
+# IV output
+stargazer(ivec[[1]],
+          ivec[[2]],
+          ivec[[3]],
+          ivpc[[1]],
+          ivpc[[2]],
+          ivpc[[3]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           omit = c("ind1", "ind2"),
-          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (corr)"),
+          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           covariate.labels = c("IO connections", "Labor flow"),
           out = paste0("../outputs/regression_tables/02_iv.html"))
 
@@ -100,10 +120,13 @@ stargazer(ive[[1]],
 
 
 ### --- Table 3 OLS with interactions
-region_codes <- c("nuts3", "nuts4", "city")
+#region_codes <- c("nuts3", "nuts4", "city")
+region_codes <- c("nuts4")
 eim <- list()
+eim_fe <- list()
 eim01 <- list()
 pim <- list()
+pim_fe <- list()
 pim01 <- list()
 for(r in 1:length(region_codes)){
   # file from OC
@@ -113,20 +136,23 @@ for(r in 1:length(region_codes)){
   # baseline models -- EGK and Porter
   eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
   pim[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  eim_fe[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pim_fe[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  #pim[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
 }  
 
 stargazer(
-  #eim[[1]],
-  #eim[[2]],
-  #eim[[3]],
+  eim[[1]],
+  eim_fe[[1]],
   pim[[1]],
-  pim[[2]],
-  pim[[3]],
+  pim_fe[[1]],
   omit.stat=c("f", "ser"),
   dep.var.caption = "",
-  dep.var.labels = c("Coagglomeration (corr)"),
+  omit = c("ind1", "ind2"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
-  out = paste0("../outputs/regression_tables/03_interactions.html")
+  out = paste0("../outputs/regression_tables/03_interactions_new.html")
 )
 
 
@@ -137,7 +163,7 @@ path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_",
 reg_df <- prep_baseline_regression_table(path)
 
 # baseline models -- EGK and Porter
-pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
 
 
 # interplot 1 
@@ -188,6 +214,33 @@ file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=1400, height=650, units = 'px')
 plot_grid(ip1, ip2, labels = c('A', 'B'), label_size = 40)
 dev.off()
+
+
+
+
+summary(pipm <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm, data = reg_df))
+summary(pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df))
+
+summary(pipm1 <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df))
+summary(pipm2 <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df))
+
+stargazer(
+  pipm1,
+  pipm2,
+  type = "text",
+  omit = c("ind1", "ind2")
+)
+
+
+summary(iv_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+summary(iv_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+summary(ivi_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand | iv_wiot_usa_stand * iv_swe_lab_stand, data = reg_df))
+summary(ivi_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand | iv_wiot_usa_stand * iv_swe_lab_stand, data = reg_df))
+
+
+
+
 
 
 
