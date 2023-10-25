@@ -124,10 +124,15 @@ stargazer(ivec[[1]],
 region_codes <- c("nuts4")
 eim <- list()
 eim_fe <- list()
-eim01 <- list()
+eimc <- list()
+eimc_fe <- list()
+#eim01 <- list()
 pim <- list()
 pim_fe <- list()
-pim01 <- list()
+pimc <- list()
+pimc_fe <- list()
+#pim01 <- list()
+
 for(r in 1:length(region_codes)){
   # file from OC
   path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
@@ -138,8 +143,13 @@ for(r in 1:length(region_codes)){
   pim[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
   eim_fe[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   pim_fe[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  #pim[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  
+  eimc[[r]] <- coeftest(eim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eimc_fe[[r]] <- coeftest(eim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pimc[[r]] <- coeftest(pim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pimc_fe[[r]] <- coeftest(pim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
 }  
+
 
 stargazer(
   eim[[1]],
@@ -152,8 +162,25 @@ stargazer(
   add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
   dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
-  out = paste0("../outputs/regression_tables/03_interactions_new.html")
+  out = paste0("../outputs/regression_tables/03_interactions.html")
 )
+
+
+stargazer(
+  eimc[[1]],
+  eimc_fe[[1]],
+  pimc[[1]],
+  pimc_fe[[1]],
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  omit = c("ind1", "ind2"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  out = paste0("../outputs/regression_tables/03_interactions_cse.html")
+)
+
+
 
 
 
@@ -214,6 +241,14 @@ file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=1400, height=650, units = 'px')
 plot_grid(ip1, ip2, labels = c('A', 'B'), label_size = 40)
 dev.off()
+
+
+
+
+
+
+
+
 
 
 
