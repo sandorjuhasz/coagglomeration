@@ -183,6 +183,75 @@ stargazer(
 
 
 
+### --- Table 4 alternative specification OLS with interactions
+#region_codes <- c("nuts3", "nuts4", "city")
+region_codes <- c("nuts4")
+eim <- list()
+eim_fe <- list()
+eimc <- list()
+eimc_fe <- list()
+#eim01 <- list()
+pim <- list()
+pim_fe <- list()
+pimc <- list()
+pimc_fe <- list()
+#pim01 <- list()
+
+for(r in 1:length(region_codes)){
+  # file from OC
+  path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
+  reg_df <- prep_baseline_regression_table(path)
+  
+  # baseline models -- EGK and Porter
+  eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pim[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  eim_fe[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pim_fe[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  
+  eimc[[r]] <- coeftest(eim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eimc_fe[[r]] <- coeftest(eim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pimc[[r]] <- coeftest(pim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pimc_fe[[r]] <- coeftest(pim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+}  
+
+
+stargazer(
+  eim[[1]],
+  eim_fe[[1]],
+  pim[[1]],
+  pim_fe[[1]],
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  omit = c("ind1", "ind2"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  out = paste0("../outputs/regression_tables/03_interactions.html")
+)
+
+
+stargazer(
+  eimc[[1]],
+  eimc_fe[[1]],
+  pimc[[1]],
+  pimc_fe[[1]],
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  omit = c("ind1", "ind2"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  out = paste0("../outputs/regression_tables/03_interactions_cse.html")
+)
+
+
+
+
+
+
+
+
+
 
 
 ### --- Figure 2 -- interplots
@@ -542,33 +611,93 @@ path_BP <- paste0("../data/oc13_2023_oct_3/04b_oc_data_budapest_excluded_", vers
 path_single <- paste0("../data/oc13_2023_oct_3/04d_oc_data_single_plant_", version, region_level, "_", focal_year, ".csv")
 
 bpo_df <- prep_alternative_table(path, path_BP)
-summary(em_bp <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = bpo_df))
-summary(pm_bp <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = bpo_df))
+summary(ebp <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = bpo_df))
+summary(ebpi <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = bpo_df))
+summary(pbp <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = bpo_df))
+summary(pbpi <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = bpo_df))
 
 single_df <- prep_alternative_table(path, path_single)
-summary(em_sing <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = single_df))
-summary(pm_sing <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = single_df))
+summary(esi <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = single_df))
+summary(esii <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = single_df))
+summary(psi <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = single_df))
+summary(psii <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = single_df))
+
+summary(esi2 <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = single_df))
+summary(esii2 <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = single_df))
+summary(psi2 <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = single_df))
+summary(psii2 <- lm(coagg_porter_rca01_stand ~ io3_stand * lab_stand, data = single_df))
+
+
+
+reg_df <- prep_baseline_regression_table(path)
+summary(eio <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = reg_df))
+summary(eioi <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = reg_df))
+summary(pio <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = reg_df))
+summary(pioi <- lm(coagg_porter_rca01_stand ~ io2_stand * lab_stand, data = reg_df))
+
+
 
 
 
 stargazer(
-  em_bp,
-  em_sing,
-  pm_bp,
-  pm_sing,
+  ebp,
+  ebpi,
+  #esi,
+  #esii,
+  eio,
+  eioi,
+  pbp,
+  pbpi,
+  #psi,
+  #psii,
+  pio,
+  pioi,
   omit.stat=c("f", "ser"),
-  dep.var.caption = c("Coagglomeration (EGK)"),
+  #dep.var.caption = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   dep.var.labels = c("Excl. BP", "Single plant", "Excl. BP", "Single plant"),
-  covariate.labels = c("IO connections", "Labor flow"),
-  out = paste0("../outputs/regression_tables/si_ols_without_bp_single_plant.html")
+  covariate.labels = c("IO connections", "IO transactions", "Labor flow"),
+  #out = paste0("../outputs/regression_tables/si_ols_without_bp_single_plant.html")
+  type = "text"
 )
 
 
 
+stargazer(
+  esi,
+  esii,
+  psi,
+  psii,
+  esi2,
+  esii2,
+  psi2,
+  psii2,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = c("Coagglomeration (LC)"),
+  #dep.var.labels = c("Excl. BP", "Single plant", "Transaction data"),
+  covariate.labels = c("IO connections", "IO transactions", "Labor flow", "IO conn X Labor", "IO trans X Labor"),
+  #out = paste0("../outputs/regression_tables/si_ols_without_bp_single_plant.html")
+  type = "text"
+)
+
+
+interplot(m = pioi,
+          var1 = "io2_stand",
+          var2 = "lab_stand",
+          size = 3,
+          #xmin = -1,
+          #xmax = 1,
+          rfill = "#6da3d0")
+  
 
 
 
 ### --- SI -- without Budapest OLS
+
+
+summary(lm(coagg_porter_rca01_stand ~ io2_stand + lab_stand, reg_df ))
+summary(ivreg::ivreg(egk_coagg_stand ~ io2_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io2_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
 
 
 
