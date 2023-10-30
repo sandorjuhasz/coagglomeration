@@ -42,58 +42,81 @@ summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data 
 
 ### --- Table 1 OLS and Table 2 IV
 
-region_codes <- c("nuts3", "nuts4", "city")
+#region_codes <- c("nuts3", "nuts4", "city")
+region_codes <- c("nuts3", "nuts4")
 em <- list()
 pm <- list()
+emt <- list()
+pmt <- list()
 emc <- list()
 pmc <- list()
-ive <- list()
-ivp <- list()
-ivec <- list()
-ivpc <- list()
+emct <- list()
+pmct <- list()
+ie <- list()
+ip <- list()
+iet <- list()
+ipt <- list()
+iec <- list()
+ipc <- list()
+iect <- list()
+ipct <- list()
+
 for(r in 1:length(region_codes)){
   # file from OC
   path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
   reg_df <- prep_baseline_regression_table(path)
+  reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
   
   # baseline models -- EGK and Porter
   em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
   pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
   emc[[r]] <- coeftest(em[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   pmc[[r]] <- coeftest(pm[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  # iv models
-  ive[[r]] <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
-  ivp[[r]] <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  emt[[r]] <- lm(egk_coagg_stand ~ io2_stand + lab_stand, data = reg_df)
+  pmt[[r]] <- lm(coagg_porter_rca01_stand ~ io2_stand + lab_stand, data = reg_df)
+  emct[[r]] <- coeftest(emt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pmct[[r]] <- coeftest(pmt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   
-  ivec[[r]] <- coeftest(ive[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  ivpc[[r]] <- coeftest(ivp[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
+  
+    # iv models
+  ie[[r]] <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  ip[[r]] <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  iet[[r]] <- ivreg::ivreg(egk_coagg_stand ~ io2_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  ipt[[r]] <- ivreg::ivreg(coagg_porter_rca01_stand ~ io2_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  
+  iec[[r]] <- coeftest(ie[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  ipc[[r]] <- coeftest(ip[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  iect[[r]] <- coeftest(iet[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  ipct[[r]] <- coeftest(ipt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
 }
 
 # OLS output
 stargazer(em[[1]],
           em[[2]],
-          em[[3]],
+          emt[[2]],
           pm[[1]],
           pm[[2]],
-          pm[[3]],
+          pmt[[2]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-          covariate.labels = c("IO connections", "Labor flow"),
+          covariate.labels = c("IO table", "IO transactions", "Labor flow"),
           out = paste0("../outputs/regression_tables/01_ols.html"))
 
 # OLS output
 stargazer(emc[[1]],
           emc[[2]],
-          emc[[3]],
+          emct[2],
           pmc[[1]],
           pmc[[2]],
-          pmc[[3]],
+          pmct[[2]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-          covariate.labels = c("IO connections", "Labor flow"),
+          covariate.labels = c("IO table", "IO transactions", "Labor flow"),
           out = paste0("../outputs/regression_tables/01_ols_cse.html"))
 
 
@@ -101,17 +124,17 @@ stargazer(emc[[1]],
 
 
 # IV output
-stargazer(ivec[[1]],
-          ivec[[2]],
-          ivec[[3]],
-          ivpc[[1]],
-          ivpc[[2]],
-          ivpc[[3]],
+stargazer(iec[[1]],
+          iec[[2]],
+          iect[[2]],
+          ipc[[1]],
+          ipc[[2]],
+          ipct[[2]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-          covariate.labels = c("IO connections", "Labor flow"),
+          covariate.labels = c("IO table", "IO transactions", "Labor flow"),
           out = paste0("../outputs/regression_tables/02_iv.html"))
 
 
@@ -341,6 +364,42 @@ summary(iv_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab
 
 summary(ivi_em <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand | iv_wiot_usa_stand * iv_swe_lab_stand, data = reg_df))
 summary(ivi_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand | iv_wiot_usa_stand * iv_swe_lab_stand, data = reg_df))
+
+
+
+
+
+
+
+
+
+### --- Table -- labor flow SWE -- first stage illustration
+
+# first and second stage separately
+summary(iv_egk <- ivreg::ivreg(egk_coagg_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+
+# first stage with lm
+summary(first_stage <- lm(lab_stand ~ iv_swe_lab_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(first_stage, newdata = reg_df)
+cor(reg_df$lab_stand, reg_df$first_stage_pred)
+
+# second stage with lm
+summary(second_stage <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+
+stargazer(
+  first_stage,
+  second_stage,
+  column.labels = c("First stage", "Second stage"),
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("Labor flow SWE", "Labor flow pred"),
+  out = paste0("../outputs/regression_tables/05_iv_illustration.html")
+  
+)
+
 
 
 
@@ -593,9 +652,6 @@ reg_df$d22 <- ifelse(
 summary(i01_egk <- lm(egk_coagg_stand ~ d01 + d02 + d10 + d11 + d12 + d20 + d21 + d22 , data = reg_df))
 summary(i01_cpr <- lm(coagg_porter_rca01_stand ~ d01 + d02 + d10 + d11 + d12 + d20 + d21 + d22 , data = reg_df))
 
-
-
-### --- SI -- first stage IV (and related descriptives)
 
 
 
