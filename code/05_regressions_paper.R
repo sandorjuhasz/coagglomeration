@@ -160,6 +160,7 @@ for(r in 1:length(region_codes)){
   # file from OC
   path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
   reg_df <- prep_baseline_regression_table(path)
+  reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
   
   # baseline models -- EGK and Porter
   eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
@@ -209,46 +210,54 @@ stargazer(
 ### --- Table 4 alternative specification OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
 region_codes <- c("nuts4")
-eim <- list()
-eim_fe <- list()
-eimc <- list()
-eimc_fe <- list()
+ei <- list()
+ei_fe <- list()
+eifet <- list()
+eic <- list()
+eic_fe <- list()
 #eim01 <- list()
-pim <- list()
-pim_fe <- list()
-pimc <- list()
-pimc_fe <- list()
+pi <- list()
+pi_fe <- list()
+pifet <- list()
+pic <- list()
+pic_fe <- list()
 #pim01 <- list()
 
 for(r in 1:length(region_codes)){
   # file from OC
   path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
   reg_df <- prep_baseline_regression_table(path)
+  reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
   
   # baseline models -- EGK and Porter
-  eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  pim[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  eim_fe[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  pim_fe[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  ei[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pi[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  ei_fe[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pi_fe[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  eifet[[r]] <- lm(egk_coagg_stand ~ io2_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pifet[[r]] <- lm(coagg_porter_rca01_stand ~ io2_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   
-  eimc[[r]] <- coeftest(eim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  eimc_fe[[r]] <- coeftest(eim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pimc[[r]] <- coeftest(pim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pimc_fe[[r]] <- coeftest(pim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
+  eic[[r]] <- coeftest(eim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eic_fe[[r]] <- coeftest(eim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pic[[r]] <- coeftest(pim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pic_fe[[r]] <- coeftest(pim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
 }  
 
 
 stargazer(
-  eim[[1]],
-  eim_fe[[1]],
-  pim[[1]],
-  pim_fe[[1]],
+  ei[[1]],
+  ei_fe[[1]],
+  eifet[[1]],
+  pi[[1]],
+  pi_fe[[1]],
+  pifet[[1]],
   omit.stat=c("f", "ser"),
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
-  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
   dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
+  covariate.labels = c("IO table", "IO transactions", "Labor flow", "IO table X Labor flow", "IO transactions X Labor flow"),
   out = paste0("../outputs/regression_tables/03_interactions.html")
 )
 
@@ -280,6 +289,7 @@ stargazer(
 ### --- Figure 2 -- interplots
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
+reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
 
 # baseline models -- EGK and Porter
 pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
@@ -337,6 +347,63 @@ dev.off()
 
 
 
+
+
+
+
+# transactions based interplot
+pifet <- lm(coagg_porter_rca01_stand ~ io2_stand * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+
+# interplot 1 
+title <- "figure021_interplot_labor_IO_transactions"
+file_name <- paste0("../figures/", title, "_", region_level, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+ip1 <- interplot(m = pifet,
+                 var1 = "sr_norm",
+                 var2 = "io2_stand",
+                 size = 3,
+                 xmin = -1,
+                 xmax = 1,
+                 rfill = "#6da3d0") +
+                 #rfill = "#2C728EFF") +
+  xlab("IO transactions") +
+  ylab("Estimated coefficient for\nlabor flow") +
+  #ylim(0, 0.5) +
+  #theme_bw() +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# interplot 2
+title <- "figure022_interplot_IO_transactions_labor"
+file_name <- paste0("../figures/", title, "_", region_level, ".png")
+png(file_name, width=600, height=600, units = 'px')
+
+ip2 <- interplot(m = pifet,
+                 var1 = "io2_stand",
+                 var2 = "sr_norm",
+                 size = 3,
+                 xmin = -1,
+                 xmax = 1,
+                 rfill = "#6da3d0") +
+                 #rfill = "#2C728EFF") +
+  xlab("Labor flow") +
+  ylab("Estimated coefficient for\nIO transactions") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
+dev.off()
+
+
+# combined version
+title <- "fig02_interplots_transactions"
+file_name <- paste0("../figures/", title, "_", region_level, ".png")
+png(file_name, width=1400, height=650, units = 'px')
+plot_grid(ip1, ip2, labels = c('A', 'B'), label_size = 40)
+dev.off()
 
 
 
