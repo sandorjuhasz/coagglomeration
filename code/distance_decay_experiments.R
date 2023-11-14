@@ -19,9 +19,6 @@ io_table <- io_el %>%
 #  mutate(realized = w / ( (nr_firms1 * (nr_firms2 - 1))/2)) %>%
   data.table()
 
-io_table$prob_w <- io_table$w / (io_table$nr_firms1 * (io_table$nr_firms2 - 1) / 2)
-labor_table$prob_w <- labor_table$w / (labor_table$nr_firms1 * (labor_table$nr_firms2 - 1) / 2)
-
 
 labor_el <- fread("../data/oc_el_labor_flows_nace3d_NUTS4_2019_1.csv")
 labor_table <- labor_el %>%
@@ -35,6 +32,9 @@ labor_table <- labor_el %>%
   #  mutate(realized = w / ( (nr_firms1 * (nr_firms2 - 1))/2)) %>%
   data.table()
 
+
+# distance table
+dist <- fread("../outputs/nuts4_nuts4_distance.csv")
 
 
 # add IO and labor to full distance table
@@ -64,6 +64,7 @@ dist_table$prob_w_labor[is.na(dist_table$prob_w_labor)==1] <- 0
 dist_table$dist_int <- as.integer(dist_table$dist)
 dist_table$dist_int <- dist_table$dist_int %/% 10 * 10
 
+
 # group by distance bin
 plot_table <- dist_table %>%
   group_by(dist_int) %>%
@@ -84,7 +85,18 @@ plot_table <- dist_table %>%
 
 
 # log version
-plot(plot_table$log_dist, plot_table$log_obs_io, type = "b", pch = 19, col = "red")
+plot(
+  plot_table$log_dist,
+  plot_table$log_obs_io,
+  type = "b",
+  pch = 19,
+  col = "red",
+  frame.plot=FALSE,
+  xlab="Distance (log)",
+  ylab="Ties observed (log)",
+  cex.lab=2,
+  cex.axis=2
+)
 lines(plot_table$log_dist, plot_table$log_obs_labor, type = "b", pch = 19, col = "darkgreen")
 
 
