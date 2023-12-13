@@ -32,7 +32,9 @@ version <- "oc_oct_n2_"
 
 
 # file from OC
-mdf3 <- fread(paste0("../data/oc12_2023_oct_2/03_data_output_emp_porter_", region, "_2015_", year, "_based.csv"), sep = ";")
+#mdf3 <- fread(paste0("../data/oc12_2023_oct_2/03_data_output_emp_porter_", region, "_2015_", year, "_based.csv"), sep = ";")
+mdf3 <- fread(paste0("../data/oc15_2023_dec/04oc_data_", region, "_", year, ".csv"), sep = ";")
+
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_", region, "_", year, "_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_without_Budapest_nuts4_2017_based.csv"), sep = ";")
 #mdf3 <- fread(paste0("../data/oc11_2023_oct/oc_mdf3_single_plants_nuts4_2017_based.csv"), sep = ";")

@@ -19,7 +19,7 @@ source("../code/04_functions_for_regressions.R")
 focal_year <- 2017
 
 #region_level <- "nuts3"
-region_level <- "nuts4"
+region <- "nuts4"
 #region_level <- "city"
 
 version <- ""
@@ -32,11 +32,30 @@ version <- ""
 
 
 ### --- 00 -- baseline setting for local tests
-path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+#path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
 
 summary(em <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
-summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+summary(em <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(ivreg::ivreg(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+summary(em <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
+summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+
+summary(em <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = reg_df))
+summary(ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+summary(em <- lm(coagg_porter_emp_stand ~ io3_stand + lab_stand, data = reg_df))
+summary(ivreg::ivreg(coagg_porter_emp_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+summary(em <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = reg_df))
+summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+
 
 
 
@@ -104,7 +123,7 @@ stargazer(em[[1]],
           omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           covariate.labels = c("IO table", "IO transactions", "Labor flow"),
-          out = paste0("../outputs/regression_tables/01_ols.html"))
+          out = paste0("../outputs/regression_tables/01_ols_gszr.html"))
 
 # OLS output
 stargazer(emc[[1]],
@@ -287,13 +306,15 @@ stargazer(
 
 
 ### --- Figure 2 -- interplots
-path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_level, "_", focal_year, ".csv")
+#path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
-reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+#reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
 
 # baseline models -- EGK and Porter
-pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
-
+#pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+#pipm <- lm(coagg_porter_emp_stand ~ io_norm3 * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+pipm <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
 
 # interplot 1 
 title <- "figure021_interplot_labor_IO"
@@ -302,7 +323,8 @@ png(file_name, width=600, height=600, units = 'px')
 
 ip1 <- interplot(m = pipm,
           var1 = "sr_norm",
-          var2 = "io_wiot_hun",
+          #var2 = "io_wiot_hun",
+          var2 = "io_norm3",
           size = 3,
           xmin = -1,
           xmax = 1,
@@ -323,7 +345,8 @@ file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
 ip2 <- interplot(m = pipm,
-          var1 = "io_wiot_hun",
+          #var1 = "io_wiot_hun",
+          var1 = "io_norm3",
           var2 = "sr_norm",
           size = 3,
           xmin = -1,
