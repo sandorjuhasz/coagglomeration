@@ -40,8 +40,9 @@ reg_df <- prep_baseline_regression_table(path)
 
 summary(em <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = reg_df))
 summary(ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+summary(ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_usa_stand + iv_swe_lab_stand, data = reg_df))
 iv_subset <- subset(reg_df, ind1_2d != ind2_2d)
-summary(emiv <- ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = iv_subset))
+summary(emiv <- ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_usa_stand + iv_swe_lab_stand, data = iv_subset))
 coeftest(emiv, vcov = vcovCL, cluster = ~ind_pair_id)
 
 summary(pm <- lm(coagg_porter_emp_stand ~ io3_stand + lab_stand, data = reg_df))
