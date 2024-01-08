@@ -59,7 +59,6 @@ rm(merleg, gszr)
 gc()
 
 
-
 # add geographic info to firms -- with name corrections -- agglom_data is the required table
 telecodes <- fread("../data/teruleti_kodok.csv", encoding = "Latin-1")
 agglom_data <- fread("../data/agglomerations_data.csv")
@@ -69,6 +68,10 @@ firms <- location_specific_cleaning(firms, region_level = reg)
 # MNE identification
 firms$mne <- ifelse((firms$emp >= mne_min_emp) & (firms$foreign_share >= mne_min_foreign_share), 1, 0)
 firms$mne[is.na(firms$mne) == 1] <- 0
+
+
+# exclude Budapest
+firms <- subset(firms, regio_nev != "Budapest")
 
 
 
@@ -559,7 +562,7 @@ df3 <- merge(
 
 # export
 write.table(df3,
-            paste0("../outputs/04_data_", output_reg, "_", focal_year, ".csv"),
+            paste0("../outputs/04b_data_budapest_excluded_", output_reg, "_", focal_year, ".csv"),
             row.names = FALSE,
             col.names = TRUE,
             sep = ";"
@@ -573,19 +576,31 @@ write.table(df3,
 
 
 ### tables of OC ###
-df3 <- fread(paste0("../outputs/04_data_", output_reg, "_", focal_year, ".csv"))
+df3 <- fread(paste0("../outputs/04b_data_budapest_excluded_", output_reg, "_", focal_year, ".csv"))
 
 oc_df3 <- df3 %>%
   dplyr::select(
+    -sr_norm,
+    -swe_sr_norm,
+    -io_norm2,
+    -io_norm3,
+    -io_wiot_hun,
+    -swe_io_norm,
     -nr_firms1,
-    -nr_firms2
+    -nr_firms2,
+    -iv_us_supply_norm,
+    -iv_wiot_mean,
+    -iv_wiot_usa,
+    -iv_wiot_swe,
+    -iv_wiot_cze
   ) %>%
   data.table()
 
 
+
 # export
 write.table(oc_df3,
-            paste0("../outputs/oc_gszr_update/04oc_data_", output_reg, "_", focal_year, ".csv"),
+            paste0("../outputs/oc_gszr_update/04b_oc_data_budapest_excluded_", output_reg, "_", focal_year, ".csv"),
             row.names = FALSE,
             col.names = TRUE,
             sep = ";"
