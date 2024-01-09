@@ -185,7 +185,7 @@ prep_alternative_table <- function(path_full_table, path_alt_dep_var_table)
   
   
   # to have an equal setting -- drop rows with NAs in MNE related variables
-  reg_df <- subset(reg_df, is.na(coagg_porter_emp_mne) == 0 & is.na(coagg_porter_emp_local) == 0)
+  # reg_df <- subset(reg_df, is.na(coagg_porter_emp_mne) == 0 & is.na(coagg_porter_emp_local) == 0)
   
   return(reg_df)
 }
