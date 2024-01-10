@@ -242,33 +242,41 @@ stargazer(
 
 
 ### --- Figure 2 -- interplots
-path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
+region_codes <- c("nuts4")
+model_version <- c("noFE", "FE")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
 #reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
 
 # baseline models -- EGK and Porter
 #pipm <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+#pipm <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = reg_df)
 #pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm, data = reg_df)
-pipm <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+#pipm <- lm(coagg_porter_emp_stand ~ io_norm3 * sr_norm, data = reg_df)
+#pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+pipm <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = reg_df)
+#pipm <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+#pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm, data = reg_df)
 #pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
-#pipm <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
 
 # interplot 1 
-title <- "figure021_interplot_labor_IO"
+title <- paste0("figure021_interplot_labor_IO_", model_version[1])
 file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
 ip1 <- interplot(m = pipm,
           var1 = "sr_norm",
-          var2 = "io_wiot_hun",
-          #var2 = "io_norm3",
+          #var2 = "io_wiot_hun",
+          var2 = "io_norm3",
           size = 3,
           xmin = -1,
           xmax = 1,
           rfill = "#6da3d0") +
   xlab("IO connections") +
   ylab("Estimated coefficient for\nlabor flow") +
-  #ylim(0, 0.5) +
+  #ylim(-0.025, 0.4) +
+  #ylim(-0.1, 0.4) +
+  ylim(0, 0.825) +
   #theme_bw() +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -277,13 +285,13 @@ dev.off()
 
 
 # interplot 2
-title <- "figure022_interplot_IO_labor"
+title <- paste0("figure022_interplot_IO_labor_", model_version[1])
 file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
 ip2 <- interplot(m = pipm,
-          var1 = "io_wiot_hun",
-          #var1 = "io_norm3",
+          #var1 = "io_wiot_hun",
+          var1 = "io_norm3",
           var2 = "sr_norm",
           size = 3,
           xmin = -1,
@@ -291,6 +299,9 @@ ip2 <- interplot(m = pipm,
           rfill = "#6da3d0") +
   xlab("Labor flow") +
   ylab("Estimated coefficient for\nIO connections") +
+  #ylim(-0.025, 0.4) +
+  #ylim(-0.1, 0.4) +
+  ylim(0, 0.825) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
   theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
@@ -298,7 +309,8 @@ dev.off()
 
 
 # combined version
-title <- "fig02_interplots_egk_FE"
+title <- paste0("fig02_interplots_prca01_transactions_", model_version[1])
+#title <- "fig02_interplots_pemp_FE"
 file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=1400, height=650, units = 'px')
 plot_grid(ip1, ip2, labels = c('A', 'B'), label_size = 40)
