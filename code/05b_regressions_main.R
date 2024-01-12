@@ -70,6 +70,8 @@ summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | 
 
 #region_codes <- c("nuts3", "nuts4", "city")
 region_codes <- c("nuts3", "nuts4")
+#version <- c("_same2digit_dropped")
+version <- c("")
 em <- list()
 pm <- list()
 emt <- list()
@@ -89,9 +91,13 @@ ipct <- list()
 
 for(r in 1:length(region_codes)){
   # file from OC
-  path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
+  path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[r], "_", focal_year, ".csv")
   reg_df <- prep_baseline_regression_table(path)
-  #reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+  
+  # remove rows where 2-digit industries are the same
+  if(version != ""){
+    reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+  }
   
   # baseline models -- EGK and Porter
   em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
@@ -132,7 +138,7 @@ stargazer(em[[1]],
           omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
-          out = paste0("../outputs/regression_tables/01_ols_main.html"))
+          out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".html"))
 
 # OLS output
 stargazer(emc[[1]],
@@ -145,7 +151,7 @@ stargazer(emc[[1]],
           dep.var.caption = "",
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           covariate.labels = c("IO (WIOT)", "IO (transactions)", "Labor (SR)"),
-          out = paste0("../outputs/regression_tables/01_ols_cse.html"))
+          out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".html"))
 
 
 
@@ -163,7 +169,7 @@ stargazer(iec[[1]],
           omit = c("ind1", "ind2"),
           #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
-          out = paste0("../outputs/regression_tables/02_iv.html"))
+          out = paste0("../outputs/regression_tables/02_iv", version[1], ".html"))
 
 
 
@@ -173,6 +179,8 @@ stargazer(iec[[1]],
 ### --- Table 3 OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
 region_codes <- c("nuts4")
+version <- c("_same2digit_dropped")
+#version <- c("")
 eim <- list()
 eim_fe <- list()
 eimc <- list()
@@ -188,8 +196,11 @@ for(r in 1:length(region_codes)){
   # file from OC
   path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
   reg_df <- prep_baseline_regression_table(path)
-  # reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
   
+  if(version != ""){
+    reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+  }
+
   # baseline models -- EGK and Porter
   eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
   pim[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
@@ -214,7 +225,7 @@ stargazer(
   add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
   dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   #covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
-  out = paste0("../outputs/regression_tables/03_interactions.html")
+  out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
 )
 
 
@@ -229,7 +240,7 @@ stargazer(
   add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
   dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
-  out = paste0("../outputs/regression_tables/03_interactions_cse.html")
+  out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
 )
 
 
@@ -246,18 +257,20 @@ region_codes <- c("nuts4")
 model_version <- c("noFE", "FE")
 path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
-#reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
 
 # baseline models -- EGK and Porter
 #pipm <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm, data = reg_df)
 #pipm <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = reg_df)
-#pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm, data = reg_df)
 #pipm <- lm(coagg_porter_emp_stand ~ io_norm3 * sr_norm, data = reg_df)
 #pipm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
-pipm <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = reg_df)
+#pipm <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = reg_df)
 #pipm <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
 #pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm, data = reg_df)
 #pipm <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+#pipm <- lm(coagg_porter_emp_stand ~ io_norm3 * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
+#pipm <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm + as.factor(ind1) + as.factor(ind2), data = reg_df)
 
 # interplot 1 
 title <- paste0("figure021_interplot_labor_IO_", model_version[1])
@@ -266,8 +279,8 @@ png(file_name, width=600, height=600, units = 'px')
 
 ip1 <- interplot(m = pipm,
           var1 = "sr_norm",
-          #var2 = "io_wiot_hun",
-          var2 = "io_norm3",
+          var2 = "io_wiot_hun",
+          #var2 = "io_norm3",
           size = 3,
           xmin = -1,
           xmax = 1,
@@ -276,7 +289,7 @@ ip1 <- interplot(m = pipm,
   ylab("Estimated coefficient for\nlabor flow") +
   #ylim(-0.025, 0.4) +
   #ylim(-0.1, 0.4) +
-  ylim(0, 0.825) +
+  ylim(0, 0.7) +
   #theme_bw() +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -290,8 +303,8 @@ file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=600, height=600, units = 'px')
 
 ip2 <- interplot(m = pipm,
-          #var1 = "io_wiot_hun",
-          var1 = "io_norm3",
+          var1 = "io_wiot_hun",
+          #var1 = "io_norm3",
           var2 = "sr_norm",
           size = 3,
           xmin = -1,
@@ -301,7 +314,8 @@ ip2 <- interplot(m = pipm,
   ylab("Estimated coefficient for\nIO connections") +
   #ylim(-0.025, 0.4) +
   #ylim(-0.1, 0.4) +
-  ylim(0, 0.825) +
+  #ylim(0, 0.825) +
+  ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
   theme(axis.text = element_text(size=30), axis.title=element_text(size=40))
@@ -309,7 +323,7 @@ dev.off()
 
 
 # combined version
-title <- paste0("fig02_interplots_prca01_transactions_", model_version[1])
+title <- paste0("fig02_interplots_pemp_same2digit_dropped", model_version[1])
 #title <- "fig02_interplots_pemp_FE"
 file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=1400, height=650, units = 'px')
@@ -371,7 +385,8 @@ dev.off()
 
 
 # combined version
-title <- "fig02_interplots_transactions"
+#title <- "fig02_interplots_transactions"
+title <- "fig02_interplots_transactions_same2digit_dropped"
 file_name <- paste0("../figures/", title, "_", region_level, ".png")
 png(file_name, width=1400, height=650, units = 'px')
 plot_grid(ip1, ip2, labels = c('A', 'B'), label_size = 40)
