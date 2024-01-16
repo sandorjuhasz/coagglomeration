@@ -41,7 +41,94 @@ version <- ""
 
 
 
-### -- 00 -- 
+### -- 00 -- interaction models based on NUTS3 level data
+
+
+### --- Table 3 OLS with interactions
+region_codes <- c("nuts3")
+version <- c("")
+ei <- list()
+eif <- list()
+eit <- list()
+eitf <- list()
+eic <- list()
+eifc <- list()
+eitc <- list()
+eitfc <- list()
+
+pi <- list()
+pif <- list()
+pit <- list()
+pitf <- list()
+pic <- list()
+pifc <- list()
+pitc <- list()
+pitfc <- list()
+
+for(r in 1:length(region_codes)){
+  # file from OC
+  path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes[r], "_", focal_year, ".csv")
+  reg_df <- prep_baseline_regression_table(path)
+  
+  if(version != ""){
+    reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+  }
+  
+  # baseline models -- EGK and Porter
+  ei[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  eit[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = reg_df)
+  pi[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pit[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand * lab_stand, data = reg_df)
+  eif[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pif[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  eitf[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pitf[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  
+  eic[[r]] <- coeftest(ei[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eitc[[r]] <- coeftest(eit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pic[[r]] <- coeftest(pi[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pitc[[r]] <- coeftest(pit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
+  eifc[[r]] <- coeftest(eif[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eitfc[[r]] <- coeftest(eitf[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pifc[[r]] <- coeftest(pif[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pitfc[[r]] <- coeftest(pitf[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
+}  
+
+
+stargazer(
+  ei[[1]],
+  eif[[1]],
+  eitf[[1]],
+  pi[[1]],
+  pif[[1]],
+  pitf[[1]],
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  omit = c("ind1", "ind2"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3", version, ".tex")
+  out = paste0("../outputs/regression_tables/si_interactions_nuts3", version, ".html")
+)
+
+stargazer(
+  eic[[1]],
+  eifc[[1]],
+  eitfc[[1]],
+  pic[[1]],
+  pifc[[1]],
+  pitfc[[1]],
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  omit = c("ind1", "ind2"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
+)
+
+
+
 
 
 

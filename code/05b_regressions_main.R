@@ -187,8 +187,6 @@ stargazer(iec[[1]],
 
 ### --- Table 3 OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
-#region_codes <- c("nuts3", "nuts4")
-#region_codes <- c("nuts3")
 region_codes <- c("nuts4")
 #version <- c("_same2digit_dropped")
 version <- c("")
@@ -201,7 +199,6 @@ eifc <- list()
 eitc <- list()
 eitfc <- list()
 
-#eim01 <- list()
 pi <- list()
 pif <- list()
 pit <- list()
@@ -210,7 +207,6 @@ pic <- list()
 pifc <- list()
 pitc <- list()
 pitfc <- list()
-#pim01 <- list()
 
 for(r in 1:length(region_codes)){
   # file from OC
@@ -247,7 +243,6 @@ for(r in 1:length(region_codes)){
 stargazer(
   ei[[1]],
   eif[[1]],
-  #eimt[[1]],
   eitf[[1]],
   pi[[1]],
   pif[[1]],
@@ -256,18 +251,13 @@ stargazer(
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
   add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
-  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-  #covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
   #out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
   out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
-  #out = paste0("../outputs/regression_tables/si_interactions_nuts3", version, ".tex")
-  #out = paste0("../outputs/regression_tables/si_interactions_nuts3", version, ".html")
 )
 
 stargazer(
   eic[[1]],
   eifc[[1]],
-  #eimt[[1]],
   eitfc[[1]],
   pic[[1]],
   pifc[[1]],
@@ -276,12 +266,8 @@ stargazer(
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
   add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
-  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-  #covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
   #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
   out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
-  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".html")
-  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
 )
 
 
