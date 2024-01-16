@@ -66,9 +66,11 @@ summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data 
 summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
 
 
+
 ### --- Table 1 OLS and Table 2 IV
 
 #region_codes <- c("nuts3", "nuts4", "city")
+focal_year <- 2017
 region_codes <- c("nuts3", "nuts4")
 #version <- c("_same2digit_dropped")
 version <- c("")
