@@ -45,6 +45,10 @@ iv_subset <- subset(reg_df, ind1_2d != ind2_2d)
 summary(emiv <- ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_usa_stand + iv_swe_lab_stand, data = iv_subset))
 coeftest(emiv, vcov = vcovCL, cluster = ~ind_pair_id)
 
+
+summary(ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+
 summary(pm <- lm(coagg_porter_emp_stand ~ io3_stand + lab_stand, data = reg_df))
 summary(pmiv <- ivreg::ivreg(coagg_porter_emp_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
 coeftest(pmiv, vcov = vcovCL, cluster = ~ind_pair_id)
@@ -183,18 +187,29 @@ stargazer(iec[[1]],
 
 ### --- Table 3 OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
+#region_codes <- c("nuts3", "nuts4")
+#region_codes <- c("nuts3")
 region_codes <- c("nuts4")
 #version <- c("_same2digit_dropped")
 version <- c("")
-eim <- list()
-eim_fe <- list()
-eimc <- list()
-eimc_fe <- list()
+ei <- list()
+eif <- list()
+eit <- list()
+eitf <- list()
+eic <- list()
+eifc <- list()
+eitc <- list()
+eitfc <- list()
+
 #eim01 <- list()
-pim <- list()
-pim_fe <- list()
-pimc <- list()
-pimc_fe <- list()
+pi <- list()
+pif <- list()
+pit <- list()
+pitf <- list()
+pic <- list()
+pifc <- list()
+pitc <- list()
+pitfc <- list()
 #pim01 <- list()
 
 for(r in 1:length(region_codes)){
@@ -207,51 +222,67 @@ for(r in 1:length(region_codes)){
   }
 
   # baseline models -- EGK and Porter
-  eim[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  pim[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  eim_fe[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  pim_fe[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  ei[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  eit[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = reg_df)
+  pi[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pit[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand * lab_stand, data = reg_df)
+  eif[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pif[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  eitf[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pitf[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   
-  eimc[[r]] <- coeftest(eim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  eimc_fe[[r]] <- coeftest(eim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pimc[[r]] <- coeftest(pim[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pimc_fe[[r]] <- coeftest(pim_fe[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eic[[r]] <- coeftest(ei[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eitc[[r]] <- coeftest(eit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pic[[r]] <- coeftest(pi[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pitc[[r]] <- coeftest(pit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
+  eifc[[r]] <- coeftest(eif[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eitfc[[r]] <- coeftest(eitf[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pifc[[r]] <- coeftest(pif[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pitfc[[r]] <- coeftest(pitf[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  
 }  
 
 
 stargazer(
-  eim[[1]],
-  eim_fe[[1]],
-  pim[[1]],
-  pim_fe[[1]],
+  ei[[1]],
+  eif[[1]],
+  #eimt[[1]],
+  eitf[[1]],
+  pi[[1]],
+  pif[[1]],
+  pitf[[1]],
   omit.stat=c("f", "ser"),
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
-  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
-  dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   #covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
-  out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
   #out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
+  out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3", version, ".tex")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3", version, ".html")
 )
-
 
 stargazer(
-  eimc[[1]],
-  eimc_fe[[1]],
-  pimc[[1]],
-  pimc_fe[[1]],
+  eic[[1]],
+  eifc[[1]],
+  #eimt[[1]],
+  eitfc[[1]],
+  pic[[1]],
+  pifc[[1]],
+  pitfc[[1]],
   omit.stat=c("f", "ser"),
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
-  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
-  dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-  covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
-  out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
+  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  #covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
   #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
+  out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
 )
-
-
-
 
 
 
