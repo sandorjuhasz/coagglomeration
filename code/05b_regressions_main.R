@@ -141,6 +141,7 @@ stargazer(em[[1]],
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
           out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".html"))
+          #out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".tex"))
 
 # OLS output
 stargazer(emc[[1]],
@@ -153,7 +154,8 @@ stargazer(emc[[1]],
           dep.var.caption = "",
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           covariate.labels = c("IO (WIOT)", "IO (transactions)", "Labor (SR)"),
-          out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".html"))
+          #out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".html"))
+          out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".tex"))
 
 
 
@@ -172,6 +174,7 @@ stargazer(iec[[1]],
           #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
           out = paste0("../outputs/regression_tables/02_iv", version[1], ".html"))
+          #out = paste0("../outputs/regression_tables/02_iv", version[1], ".tex"))
 
 
 
@@ -181,8 +184,8 @@ stargazer(iec[[1]],
 ### --- Table 3 OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
 region_codes <- c("nuts4")
-version <- c("_same2digit_dropped")
-#version <- c("")
+#version <- c("_same2digit_dropped")
+version <- c("")
 eim <- list()
 eim_fe <- list()
 eimc <- list()
@@ -228,6 +231,7 @@ stargazer(
   dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   #covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
   out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
+  #out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
 )
 
 
@@ -243,6 +247,7 @@ stargazer(
   dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
   covariate.labels = c("IO connections", "Labor flow", "IO connections X Labor flow"),
   out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
+  #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
 )
 
 
