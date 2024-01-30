@@ -295,9 +295,9 @@ ip_a <- interplot(m = int_egk,
                  size = 3,
                  xmin = -1,
                  xmax = 1,
-                 rfill = "#6da3d0") +
-  xlab("IO connections") +
-  ylab("Estimated coefficient for\nlabor flow") +
+                 rfill = "#15636A") +
+  xlab("IO (WIOT)") +
+  ylab("Estimated coefficient for\n labor (SR)") +
   ylim(-0.025, 0.35) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -311,9 +311,9 @@ ip_b <- interplot(m = int_egk,
                  size = 3,
                  xmin = -1,
                  xmax = 1,
-                 rfill = "#6da3d0") +
-  xlab("Labor flow") +
-  ylab("Estimated coefficient for\nIO connections") +
+                 rfill = "#15636A") +
+  xlab("Labor (SR)") +
+  ylab("Estimated coefficient for\n IO (WIOT)") +
   ylim(-0.025, 0.35) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -331,9 +331,9 @@ ip_c <- interplot(m = int_pemp,
                   size = 3,
                   xmin = -1,
                   xmax = 1,
-                  rfill = "#6da3d0") +
-  xlab("IO connections") +
-  ylab("Estimated coefficient for\nlabor flow") +
+                  rfill = "#15636A") +
+  xlab("IO (WIOT)") +
+  ylab("Estimated coefficient for\n labor (SR)") +
   ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -347,9 +347,9 @@ ip_d <- interplot(m = int_pemp,
                   size = 3,
                   xmin = -1,
                   xmax = 1,
-                  rfill = "#6da3d0") +
-  xlab("Labor flow") +
-  ylab("Estimated coefficient for\nIO connections") +
+                  rfill = "#15636A") +
+  xlab("Labor (SR)") +
+  ylab("Estimated coefficient for\n IO (WIOT)") +
   ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
