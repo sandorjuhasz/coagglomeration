@@ -1686,3 +1686,29 @@ plot_grid(
   #labels = c("A", "B", "C", "D"), label_size = fontsize, ncol = 2
 )
 ```
+
+
+
+**main text -- FE -- same 2-digit code excluded**
+
+```{r, echo=FALSE, warning=FALSE}
+region_codes <- c("nuts4")
+model_version <- c("noFE", "FE")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes, "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+summary(pmiv <- ivreg::ivreg(egk_coagg ~ io_wiot_hun * lab_stand | iv_wiot_mean_stand * iv_swe_lab_stand, data = reg_df))
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+region_codes <- c("nuts4")
+model_version <- c("noFE", "FE")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes, "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+summary(pmiv <- ivreg::ivreg(coagg_porter_emp_stand ~ io_wiot_hun * lab_stand | iv_wiot_mean_stand * iv_swe_lab_stand, data = reg_df))
+
+```
+
