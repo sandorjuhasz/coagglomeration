@@ -71,6 +71,41 @@ summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | 
 
 
 
+### --- Table 1 descriptive statistics
+region_levels <- c("nuts3", "nuts4")
+for(r in region_levels){
+  print(r)
+  path <- paste0("../data/oc15_2023_dec/04oc_data_", r, "_", focal_year, ".csv")
+  reg_df <- prep_baseline_regression_table(path)
+  
+  # columns for the descriptive stat table
+  for_desc <- reg_df %>%
+    dplyr::select(
+      egk_coagg, coagg_porter_emp, sr_norm, io_wiot_hun, io_norm3, swe_sr_norm, iv_wiot_mean
+    ) %>%
+    data.table()
+  
+  # table construction
+  stargazer(
+    for_desc,
+    digits = 3,
+    covariate.labels = c(
+      "Coagglomeration (EGK)",
+      "Coagglomeration (LC)",
+      "Labor (SR)",
+      "IO (WIOD)",
+      "IO (transactions)",
+      "Labor (Swedish SR)",
+      "IO (WIOD mean)"
+    ),
+    out = paste0("../outputs/descr_stats_table_", r, ".html")
+  )
+}
+
+
+
+
+
 ### --- Table 1 OLS and Table 2 IV
 
 #region_codes <- c("nuts3", "nuts4", "city")
