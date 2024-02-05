@@ -50,12 +50,13 @@ summary(ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stan
 
 
 summary(pm <- lm(coagg_porter_emp_stand ~ io3_stand + lab_stand, data = reg_df))
-summary(pmiv <- ivreg::ivreg(coagg_porter_emp_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+summary(pmiv <- ivreg::reg(coagg_porter_emp_stand ~ io3_stand + lab_stand + | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
 coeftest(pmiv, vcov = vcovCL, cluster = ~ind_pair_id)
 summary(ivreg::ivreg(coagg_porter_emp_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = iv_subset))
 
 summary(pm <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = reg_df))
 summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io3_stand + lab_stand + as.factor(ind1) + as.factor(ind2) | iv_wiot_mean_stand + iv_swe_lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df))
 
 
 
