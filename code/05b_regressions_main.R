@@ -287,8 +287,8 @@ stargazer(
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
   add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
-  #out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
-  out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
+  out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
+  #out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
 )
 
 stargazer(
@@ -302,8 +302,8 @@ stargazer(
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
   add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
-  #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
-  out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
+  out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
+  #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
 )
 
 
