@@ -82,7 +82,7 @@ for(r in region_levels){
   # columns for the descriptive stat table
   for_desc <- reg_df %>%
     dplyr::select(
-      egk_coagg, coagg_porter_emp, sr_norm, io_wiot_hun, io_norm3, swe_sr_norm, iv_wiot_mean
+      egk_coagg, coagg_porter_rca01, sr_norm, io_wiot_hun, io_norm3, swe_sr_norm, iv_wiot_mean
     ) %>%
     data.table()
   
@@ -143,11 +143,11 @@ for(r in 1:length(region_codes)){
   
   # baseline models -- EGK and Porter
   em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
-  pm[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
   emc[[r]] <- coeftest(em[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   pmc[[r]] <- coeftest(pm[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   emt[[r]] <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = reg_df)
-  pmt[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand + lab_stand, data = reg_df)
+  pmt[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = reg_df)
   emct[[r]] <- coeftest(emt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   pmct[[r]] <- coeftest(pmt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   
@@ -155,9 +155,9 @@ for(r in 1:length(region_codes)){
   
   # iv models
   ie[[r]] <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
-  ip[[r]] <- ivreg::ivreg(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  ip[[r]] <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
   iet[[r]] <- ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
-  ipt[[r]] <- ivreg::ivreg(coagg_porter_emp_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
+  ipt[[r]] <- ivreg::ivreg(coagg_porter_rca01_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df)
   
   iec[[r]] <- coeftest(ie[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   ipc[[r]] <- coeftest(ip[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
@@ -180,8 +180,8 @@ stargazer(em[[1]],
           omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
-          out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".html"))
-          #out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".tex"))
+          #out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".html"))
+          out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".tex"))
 
 # OLS output
 stargazer(emc[[1]],
@@ -213,8 +213,8 @@ stargazer(iec[[1]],
           omit = c("ind1", "ind2"),
           #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
-          out = paste0("../outputs/regression_tables/02_iv", version[1], ".html"))
-          #out = paste0("../outputs/regression_tables/02_iv", version[1], ".tex"))
+          #out = paste0("../outputs/regression_tables/02_iv", version[1], ".html"))
+          out = paste0("../outputs/regression_tables/02_iv", version[1], ".tex"))
 
 
 
@@ -256,12 +256,12 @@ for(r in 1:length(region_codes)){
   # baseline models -- EGK and Porter
   ei[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
   eit[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = reg_df)
-  pi[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  pit[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand * lab_stand, data = reg_df)
+  pi[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pit[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand * lab_stand, data = reg_df)
   eif[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  pif[[r]] <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pif[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   eitf[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  pitf[[r]] <- lm(coagg_porter_emp_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pitf[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   
   eic[[r]] <- coeftest(ei[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   eitc[[r]] <- coeftest(eit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
@@ -358,7 +358,8 @@ ip_b <- interplot(m = int_egk,
 
 
 # the model -- LC (emp)
-int_pemp <- lm(coagg_porter_emp_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+#int_pemp <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+int_pemp <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
 
 ip_c <- interplot(m = int_pemp,
                   var1 = "sr_norm",
