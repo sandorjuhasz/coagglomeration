@@ -33,6 +33,9 @@ version <- ""
 
 
 
+
+
+
 ### --- 00 -- setting for city level
 
 
@@ -44,7 +47,7 @@ version <- ""
 ### -- 00 -- interaction models based on NUTS3 level data
 
 
-### --- Table 3 OLS with interactions
+### --- Table 3 OLS with interactions NUTS3 level
 region_codes <- c("nuts3")
 version <- c("")
 ei <- list()
@@ -135,31 +138,101 @@ stargazer(
 
 
 ### --- 01 -- setting for Budapest excluded regressions
+
 path <- paste0("../data/oc15_2023_dec/04oc_data_", region_level, "_", focal_year, ".csv")
 path2 <- paste0("../data/oc15_2023_dec/04b_oc_data_budapest_excluded_", region_level, "_", focal_year, ".csv")
 bpe_df <- prep_alternative_table(path, path2)
 
 
-# WIOT
-summary(em <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
-summary(ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+# WIOD
+summary(ew <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
+summary(ew_iv <- ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+ew_cl <- coeftest(ew, vcov = vcovCL, cluster = ~ind_pair_id)
+ew_iv_cl <- coeftest(ew_iv, vcov = vcovCL, cluster = ~ind_pair_id)
 
-summary(pm <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
-summary(ivreg::ivreg(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+summary(pw <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
+summary(pw_iv <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+pw_cl <- coeftest(pw, vcov = vcovCL, cluster = ~ind_pair_id)
+pw_iv_cl <- coeftest(pw_iv, vcov = vcovCL, cluster = ~ind_pair_id)
 
-summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
-summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
 
 
 # transactions
-summary(em <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
-summary(ivreg::ivreg(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+summary(et <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = bpe_df))
+summary(et_iv <- ivreg::ivreg(egk_coagg_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+et_cl <- coeftest(et, vcov = vcovCL, cluster = ~ind_pair_id)
+et_iv_cl <- coeftest(et_iv, vcov = vcovCL, cluster = ~ind_pair_id)
 
-summary(pm <- lm(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
-summary(ivreg::ivreg(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+summary(pt <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = bpe_df))
+summary(pt_iv <- ivreg::ivreg(coagg_porter_rca01_stand ~ io3_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+pt_cl <- coeftest(pt, vcov = vcovCL, cluster = ~ind_pair_id)
+pt_iv_cl <- coeftest(pt_iv, vcov = vcovCL, cluster = ~ind_pair_id)
 
-summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = bpe_df))
-summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = bpe_df))
+
+
+stargazer(
+  ew_cl,
+  et_cl,
+  ew_iv_cl,
+  et_iv_cl,
+  #pw_cl,
+  #pt_cl,
+  #pw_iv_cl,
+  #pt_iv_cl,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  out = paste0("../outputs/regression_tables/si_bp_exclused_cse_p1", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
+)
+
+stargazer(
+  #ew_cl,
+  #et_cl,
+  #ew_iv_cl,
+  #et_iv_cl,
+  pw_cl,
+  pt_cl,
+  pw_iv_cl,
+  pt_iv_cl,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  out = paste0("../outputs/regression_tables/si_bp_exclused_cse_p2", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
+)
+
+
+
+
+stargazer(
+  #ew_cl,
+  #et_cl,
+  #ew_iv_cl,
+  #et_iv_cl,
+  pw_cl,
+  pt_cl,
+  pw_iv_cl,
+  pt_iv_cl,
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
+  out = paste0("../outputs/regression_tables/si_bp_exclused_cse_p2", version, ".html")
+  #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
+)
+
+
+
+
+
+
+
+
+
+
 
 
 

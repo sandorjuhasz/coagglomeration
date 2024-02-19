@@ -31,7 +31,9 @@ version <- ""
 
 
 
-### --- 00 -- baseline setting for local tests
+
+
+### --- 00 -- local tests -- baseline setting
 #path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
 path <- paste0("../data/oc15_2023_dec/04oc_data_", region_level, "_", focal_year, ".csv")
 reg_df <- prep_baseline_regression_table(path)
@@ -69,6 +71,8 @@ summary(ivreg::ivreg(coagg_porter_emp_stand ~ io_wiot_hun_stand + lab_stand | iv
 
 summary(pm <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df))
 summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
+
+
 
 
 
