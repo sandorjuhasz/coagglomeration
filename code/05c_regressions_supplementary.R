@@ -134,6 +134,171 @@ stargazer(
 
 
 
+### --- 01 -- Alternative instrumental variable specifications
+
+### IV stepwise version -- LABOR
+region_codes <- c("nuts3", "nuts4")
+
+# NUTS3 version
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[1], "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# first stage
+summary(s1 <- lm(lab_stand ~ iv_swe_lab_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(s1, newdata = reg_df)
+cor(reg_df$lab_stand, reg_df$first_stage_pred)
+
+# second stage
+summary(s2egkn3 <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+summary(s2pn3 <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+#summary(iv_egk <- ivreg::ivreg(egk_coagg_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+#summary(iv_p <- ivreg::ivreg(coagg_porter_rca01_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+
+
+# NUTS4 version
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[2], "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# first stage -- should be the same
+summary(s1 <- lm(lab_stand ~ iv_swe_lab_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(s1, newdata = reg_df)
+cor(reg_df$lab_stand, reg_df$first_stage_pred)
+
+# second stage
+summary(s2egkn4 <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+summary(s2pn4 <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+
+
+stargazer(
+  s1,
+  s2egkn3,
+  s2egkn4,
+  s2pn3,
+  s2pn4,
+  #column.labels = c("First stage", "Second stage"),
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("Labor flow SWE", "Labor flow pred"),
+  out = paste0("../outputs/regression_tables/si_iv_stepwise_labor.html")
+)
+
+
+
+
+### IV stepwise version -- WIOD
+region_codes <- c("nuts3", "nuts4")
+
+# NUTS3 version
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[1], "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# first stage
+summary(s1 <- lm(io_wiot_hun_stand ~ iv_wiot_mean_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(s1, newdata = reg_df)
+cor(reg_df$io_wiot_hun_stand, reg_df$first_stage_pred)
+
+# second stage
+summary(s2egkn3 <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+summary(s2pn3 <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+#summary(iv_egk <- ivreg::ivreg(egk_coagg_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+#summary(iv_p <- ivreg::ivreg(coagg_porter_rca01_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+
+
+# NUTS4 version
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[2], "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# first stage -- should be the same
+summary(s1 <- lm(io_wiot_hun_stand ~ iv_wiot_mean_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(s1, newdata = reg_df)
+cor(reg_df$io_wiot_hun_stand, reg_df$first_stage_pred)
+
+# second stage
+summary(s2egkn4 <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+summary(s2pn4 <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+
+
+stargazer(
+  s1,
+  s2egkn3,
+  s2egkn4,
+  s2pn3,
+  s2pn4,
+  #column.labels = c("First stage", "Second stage"),
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("IO (WIOD mean)", "IO pred"),
+  out = paste0("../outputs/regression_tables/si_iv_stepwise_io_wiod.html")
+)
+
+
+
+### IV stepwise version -- transactions
+region_codes <- c("nuts3", "nuts4")
+
+# NUTS3 version
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[1], "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# first stage
+summary(s1 <- lm(io3_stand ~ iv_wiot_mean_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(s1, newdata = reg_df)
+cor(reg_df$io3_stand, reg_df$first_stage_pred)
+
+# second stage
+summary(s2egkn3 <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+summary(s2pn3 <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+#summary(iv_egk <- ivreg::ivreg(egk_coagg_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+#summary(iv_p <- ivreg::ivreg(coagg_porter_rca01_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+
+
+# NUTS4 version
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[2], "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# first stage -- should be the same
+summary(s1 <- lm(io3_stand ~ iv_wiot_mean_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(s1, newdata = reg_df)
+cor(reg_df$io3_stand, reg_df$first_stage_pred)
+
+# second stage
+summary(s2egkn4 <- lm(egk_coagg_stand ~ first_stage_pred, data = reg_df))
+summary(s2pn4 <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+
+
+stargazer(
+  s1,
+  s2egkn3,
+  s2egkn4,
+  s2pn3,
+  s2pn4,
+  #column.labels = c("First stage", "Second stage"),
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("IO (WIOD mean)", "IO pred"),
+  out = paste0("../outputs/regression_tables/si_iv_stepwise_io_transactions.html")
+)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -282,10 +447,6 @@ stargazer(
 )
 
 
-
-
-
-### --- 03 -- setting for stepwise, separate IV models
 
 
 
