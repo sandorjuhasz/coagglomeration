@@ -336,8 +336,8 @@ ip_a <- interplot(m = int_egk,
                  xmin = -1,
                  xmax = 1,
                  rfill = "#15636A") +
-  xlab("IO (WIOT)") +
-  ylab("Estimated coefficient for\n labor (SR)") +
+  xlab("IO (WIOD)") +
+  ylab("Coefficient of labor (SR)") +
   ylim(-0.025, 0.35) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -353,7 +353,7 @@ ip_b <- interplot(m = int_egk,
                  xmax = 1,
                  rfill = "#15636A") +
   xlab("Labor (SR)") +
-  ylab("Estimated coefficient for\n IO (WIOT)") +
+  ylab("Coefficient of IO (WIOD)") +
   ylim(-0.025, 0.35) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -373,8 +373,8 @@ ip_c <- interplot(m = int_pemp,
                   xmin = -1,
                   xmax = 1,
                   rfill = "#15636A") +
-  xlab("IO (WIOT)") +
-  ylab("Estimated coefficient for\n labor (SR)") +
+  xlab("IO (WIOD)") +
+  ylab("Coefficient of labor (SR)") +
   ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -390,7 +390,7 @@ ip_d <- interplot(m = int_pemp,
                   xmax = 1,
                   rfill = "#15636A") +
   xlab("Labor (SR)") +
-  ylab("Estimated coefficient for\n IO (WIOT)") +
+  ylab("Coefficient of IO (WIOD)") +
   ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -398,15 +398,30 @@ ip_d <- interplot(m = int_pemp,
   theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
 
 
+# combine subplots
+subplots1 <- plot_grid(
+  ip_a, ip_b,
+  labels = c("A", "B"), label_size = fontsize, ncol = 2
+)
+subplots2 <- plot_grid(
+  ip_c, ip_d,
+  labels = c("C", "D"), label_size = fontsize, ncol = 2
+)
+
+
+# titles
+plot_title1 <- ggdraw() + draw_label("Coagglomeration (EGK)", fontface="bold", size = fontsize)
+plot_title2 <- ggdraw() + draw_label("Coagglomeration (LC)", fontface="bold", size = fontsize)
+
+
 # combined version
 title <- paste0("mf02_interplots_", model_version[1])
 file_name <- paste0("../figures/", title, "_", region_codes, ".png")
-png(file_name, width=1000, height=700, units = 'px')
-plot_grid(
-  ip_a, ip_b, ip_c, ip_d,
-  labels = c("A", "B", "C", "D"), label_size = fontsize, ncol = 2
-)
+png(file_name, width=1000, height=750, units = 'px')
+plot_grid(plot_title1, subplots1, plot_title2, subplots2, ncol=1, rel_heights=c(0.1, 1, 0.1, 1))
 dev.off()
+
+
 
 
 
