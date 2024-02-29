@@ -1012,6 +1012,70 @@ stargazer(
 
 
 
+### --- Neave-style IO and labor betas
+path <- paste0("../data/oc15_2023_dec/04oc_data_", region_level, "_", focal_year, ".csv")
+reg_df <- prep_symmetric_regression_table(path)
+
+industries <- unique(reg_df$ind1)
+betas_df <- list()
+#industries <- c(11)
+for(i in 1:length(industries)){
+  # print(industries[i])
+  
+  # separate OLS for each ind_i
+  ols_data <- subset(reg_df, ind1 == industries[i])  
+  model_summary <- summary(lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = ols_data))
+  coefficients <- model_summary$coefficients[, "Estimate"]
+  se <- model_summary$coefficients[, "Std. Error"]
+  p_values <- model_summary$coefficients[, "Pr(>|t|)"]
+  
+  coeffs_dt <- data.table(
+    variable = names(coefficients),
+    beta = coefficients,
+    se = se,
+    p_value = p_values
+  )
+  
+  # add industry code
+  coeffs_dt$ind <- industries[i]
+  betas_df[[i]] <- coeffs_dt
+}
+betas_df <- Filter(function(x) dim(x)[1] == 3 && dim(x)[2] == 5, betas_df)
+betas_df <- rbindlist(betas_df)
+
+
+# add groups
+nace_labels <- readxl::read_excel("../data/nace_labels.xlsx") %>%
+  dplyr::select(ind3dig, ind2dig, ind_group) %>%
+  unique() %>%
+  data.table()
+
+betas_df <- merge(
+  betas_df,
+  nace_labels,
+  by.x = "ind",
+  by.y = "ind3dig",
+  all.x = TRUE,
+  all.y = FALSE
+)
+
+
+
+# export
+write.table(betas_df,
+            paste0("../outputs/betas_io_labor.csv"),
+            row.names = FALSE,
+            col.names = TRUE,
+            sep = ";"
+)
+
+
+
+
+
+
+
+
 
 ### --- table 5 OLS for MNE / domestic -- synthetic MNEs
 path <- paste0("../data/oc13_2023_oct_3/04oc_data_", version, region_level, "_", focal_year, ".csv")
