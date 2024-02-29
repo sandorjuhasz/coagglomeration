@@ -1046,7 +1046,7 @@ betas_df <- rbindlist(betas_df)
 
 # add groups
 nace_labels <- readxl::read_excel("../data/nace_labels.xlsx") %>%
-  dplyr::select(ind3dig, ind2dig, ind_group) %>%
+  dplyr::select(ind3dig, ind2dig, ind_group, ind_group_color) %>%
   unique() %>%
   data.table()
 
