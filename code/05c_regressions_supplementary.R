@@ -456,6 +456,139 @@ stargazer(
 
 
 
+### --- 03 -- interplots with IO (transactions)
+fontsize <- 25
+region_codes <- c("nuts4")
+model_version <- c("noFE", "FE")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes, "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+#reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+
+
+# the model -- EGK
+int_egk <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = reg_df)
+
+ip_a <- interplot(m = int_egk,
+                  var1 = "sr_norm",
+                  #var2 = "io_norm3",
+                  var2 = "io_norm3",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A") +
+  xlab("IO (transactions)") +
+  ylab("Coeff. labor (SR)") +
+  ylim(-0.125, 0.4) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1, 0, 1), "cm"))
+
+ip_b <- interplot(m = int_egk,
+                  #var1 = "io_wiot_hun",
+                  var1 = "io_norm3",
+                  var2 = "sr_norm",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A") +
+  xlab("Labor (SR)") +
+  ylab("Coeff. IO (transactions)") +
+  ylim(-0.125, 0.4) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1, 0, 1), "cm"))
+
+
+# the model -- LC (emp)
+#int_pemp <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+int_pemp <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = reg_df)
+
+ip_c <- interplot(m = int_pemp,
+                  var1 = "sr_norm",
+                  #var2 = "io_wiot_hun",
+                  var2 = "io_norm3",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A") +
+  xlab("IO (transactions)") +
+  ylab("Coeff. labor (SR)") +
+  ylim(0, 0.85) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
+
+ip_d <- interplot(m = int_pemp,
+                  #var1 = "io_wiot_hun",
+                  var1 = "io_norm3",
+                  var2 = "sr_norm",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A") +
+  xlab("Labor (SR)") +
+  ylab("Coeff. IO (transactions)") +
+  ylim(0, 0.85) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
+
+
+# combine subplots
+subplots1 <- plot_grid(
+  ip_a, ip_b,
+  labels = c("A", "B"), label_size = fontsize, ncol = 2
+)
+subplots2 <- plot_grid(
+  ip_c, ip_d,
+  labels = c("C", "D"), label_size = fontsize, ncol = 2
+)
+
+
+# titles
+plot_title1 <- ggdraw() + draw_label("Coagglomeration (EGK)", fontface="bold", size = fontsize)
+plot_title2 <- ggdraw() + draw_label("Coagglomeration (LC)", fontface="bold", size = fontsize)
+
+
+# combined version
+title <- paste0("si_interplots_transactions_", model_version[1])
+file_name <- paste0("../figures/", title, "_", region_codes, ".png")
+png(file_name, width=1000, height=750, units = 'px')
+plot_grid(plot_title1, subplots1, plot_title2, subplots2, ncol=1, rel_heights=c(0.1, 1, 0.1, 1))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### --- 04 -- alternative specification (coagg Porter) OLS with interactions

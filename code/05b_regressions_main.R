@@ -337,7 +337,7 @@ ip_a <- interplot(m = int_egk,
                  xmax = 1,
                  rfill = "#15636A") +
   xlab("IO (WIOD)") +
-  ylab("Coefficient of labor (SR)") +
+  ylab("Coeff. labor (SR)") +
   ylim(-0.025, 0.35) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -353,7 +353,7 @@ ip_b <- interplot(m = int_egk,
                  xmax = 1,
                  rfill = "#15636A") +
   xlab("Labor (SR)") +
-  ylab("Coefficient of IO (WIOD)") +
+  ylab("Coeff. IO (WIOD)") +
   ylim(-0.025, 0.35) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -374,7 +374,7 @@ ip_c <- interplot(m = int_pemp,
                   xmax = 1,
                   rfill = "#15636A") +
   xlab("IO (WIOD)") +
-  ylab("Coefficient of labor (SR)") +
+  ylab("Coeff. labor (SR)") +
   ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
@@ -390,7 +390,7 @@ ip_d <- interplot(m = int_pemp,
                   xmax = 1,
                   rfill = "#15636A") +
   xlab("Labor (SR)") +
-  ylab("Coefficient of IO (WIOD)") +
+  ylab("Coeff. IO (WIOD)") +
   ylim(0, 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
   theme_cowplot(12) +
