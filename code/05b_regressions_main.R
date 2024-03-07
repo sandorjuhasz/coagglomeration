@@ -118,14 +118,14 @@ focal_year <- 2017
 region_codes <- c("nuts3", "nuts4")
 #version <- c("_same2digit_dropped")
 version <- c("")
-em <- list()
-pm <- list()
-emt <- list()
-pmt <- list()
-emc <- list()
-pmc <- list()
-emct <- list()
-pmct <- list()
+e <- list()
+p <- list()
+et <- list()
+pt <- list()
+ec <- list()
+pc <- list()
+ect <- list()
+pct <- list()
 ie <- list()
 ip <- list()
 iet <- list()
@@ -146,14 +146,14 @@ for(r in 1:length(region_codes)){
   }
   
   # baseline models -- EGK and Porter
-  em[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
-  pm[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
-  emc[[r]] <- coeftest(em[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pmc[[r]] <- coeftest(pm[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  emt[[r]] <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = reg_df)
-  pmt[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = reg_df)
-  emct[[r]] <- coeftest(emt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pmct[[r]] <- coeftest(pmt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  e[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  p[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+  ec[[r]] <- coeftest(e[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pc[[r]] <- coeftest(p[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  et[[r]] <- lm(egk_coagg_stand ~ io3_stand + lab_stand, data = reg_df)
+  pt[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand + lab_stand, data = reg_df)
+  ect[[r]] <- coeftest(et[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pct[[r]] <- coeftest(pt[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   
   
   
@@ -170,36 +170,41 @@ for(r in 1:length(region_codes)){
   
 }
 
+
 # OLS output
-stargazer(em[[1]],
-          em[[2]],
-          #em[[3]],
-          emt[[2]],
-          pm[[1]],
-          pm[[2]],
-          #pm[[3]],
-          pmt[[2]],
+stargazer(e[[1]],
+          e[[2]],
+          et[[1]],
+          et[[2]],
+          p[[1]],
+          p[[2]],
+          pt[[1]],
+          #pt[[2]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           omit = c("ind1", "ind2"),
           dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-          #covariate.labels = c("IO transactions", "Labor flow"),
-          #out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".html"))
-          out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".tex"))
+          #type="text")
+          #out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".txt"))
+          out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".html"))
+          #out = paste0("../outputs/regression_tables/01_ols_main", version[1], ".tex"))
 
 # OLS output
-stargazer(emc[[1]],
-          emc[[2]],
-          emct[[2]],
-          pmc[[1]],
-          pmc[[2]],
-          pmct[[2]],
+stargazer(ec[[1]],
+          ec[[2]],
+          #ect[[1]],
+          #ect[[2]],
+          pc[[1]],
+          pc[[2]],
+          pct[[1]],
+          pct[[2]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
-          dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
-          covariate.labels = c("IO (WIOT)", "IO (transactions)", "Labor (SR)"),
-          #out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".html"))
-          out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".tex"))
+          #type="text")
+          #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+          #covariate.labels = c("IO (WIOT)", "IO (transactions)", "Labor (SR)"),
+          out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".html"))
+          #out = paste0("../outputs/regression_tables/01_ols_cse", version[1], ".tex"))
 
 
 
@@ -208,17 +213,20 @@ stargazer(emc[[1]],
 # IV output
 stargazer(iec[[1]],
           iec[[2]],
+          iect[[1]],
           iect[[2]],
-          ipc[[1]],
-          ipc[[2]],
+          #ipc[[1]],
+          #ipc[[2]],
+          ipct[[1]],
           ipct[[2]],
           omit.stat=c("f", "ser"),
           dep.var.caption = "",
           omit = c("ind1", "ind2"),
+          #type="text")
           #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
           #covariate.labels = c("IO transactions", "Labor flow"),
-          #out = paste0("../outputs/regression_tables/02_iv", version[1], ".html"))
-          out = paste0("../outputs/regression_tables/02_iv", version[1], ".tex"))
+          out = paste0("../outputs/regression_tables/02_iv", version[1], ".html"))
+          #out = paste0("../outputs/regression_tables/02_iv", version[1], ".tex"))
 
 
 
@@ -227,7 +235,8 @@ stargazer(iec[[1]],
 
 ### --- Table 3 OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
-region_codes <- c("nuts4")
+region_codes <- c("nuts3")
+#region_codes <- c("nuts4")
 #version <- c("_same2digit_dropped")
 version <- c("")
 ei <- list()
@@ -259,22 +268,21 @@ for(r in 1:length(region_codes)){
 
   # baseline models -- EGK and Porter
   ei[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  eit[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = reg_df)
-  pi[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
-  pit[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand * lab_stand, data = reg_df)
   eif[[r]] <- lm(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
-  pif[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  eit[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand, data = reg_df)
   eitf[[r]] <- lm(egk_coagg_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pi[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand, data = reg_df)
+  pif[[r]] <- lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
+  pit[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand * lab_stand, data = reg_df)
   pitf[[r]] <- lm(coagg_porter_rca01_stand ~ io3_stand * lab_stand + as.factor(ind1) + as.factor(ind2), data = reg_df)
   
   eic[[r]] <- coeftest(ei[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  eitc[[r]] <- coeftest(eit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pic[[r]] <- coeftest(pi[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  pitc[[r]] <- coeftest(pit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
-  
   eifc[[r]] <- coeftest(eif[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  eitc[[r]] <- coeftest(eit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   eitfc[[r]] <- coeftest(eitf[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pic[[r]] <- coeftest(pi[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   pifc[[r]] <- coeftest(pif[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
+  pitc[[r]] <- coeftest(pit[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   pitfc[[r]] <- coeftest(pitf[[r]], vcov = vcovCL, cluster = ~ind_pair_id)
   
 }  
@@ -283,31 +291,36 @@ for(r in 1:length(region_codes)){
 stargazer(
   ei[[1]],
   eif[[1]],
+  eit[[1]],
   eitf[[1]],
-  pi[[1]],
-  pif[[1]],
+  #pi[[1]],
+  #pif[[1]],
+  pit[[1]],
   pitf[[1]],
   omit.stat=c("f", "ser"),
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
-  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
-  out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
-  #out = paste0("../outputs/regression_tables/03_interactions", version, ".html")
+  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes", "No", "Yes")),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes", "No", "Yes", "No", "Yes")),
+  #out = paste0("../outputs/regression_tables/03_interactions", version, ".tex")
+  out = paste0("../outputs/regression_tables/03_interactions_", region_codes, "_", version, ".html")
 )
 
 stargazer(
   eic[[1]],
   eifc[[1]],
+  eitc[[1]],
   eitfc[[1]],
-  pic[[1]],
-  pifc[[1]],
+  #pic[[1]],
+  #pifc[[1]],
+  pitc[[1]],
   pitfc[[1]],
   omit.stat=c("f", "ser"),
   dep.var.caption = "",
   omit = c("ind1", "ind2"),
-  add.lines=list(c("Two way industry FE", "No", "Yes", "Yes", "No", "Yes", "Yes")),
-  out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
-  #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".html")
+  add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes", "No", "Yes", "No", "Yes")),
+  #out = paste0("../outputs/regression_tables/03_interactions_cse", version, ".tex")
+  out = paste0("../outputs/regression_tables/03_interactions_cse_", region_codes, "_", version, ".html")
 )
 
 
@@ -612,6 +625,65 @@ summary(ivi_pm <- ivreg::ivreg(coagg_porter_rca01_stand ~ io_wiot_hun_stand * la
 ### --- Table -- labor flow SWE -- first stage illustration
 
 # first and second stage separately
+summary(iv_egk <- ivreg::ivreg(coagg_porter_rca01_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
+
+# first stage with lm
+summary(first_stage <- lm(lab_stand ~ iv_swe_lab_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(first_stage, newdata = reg_df)
+cor(reg_df$lab_stand, reg_df$first_stage_pred)
+
+# second stage with lm
+summary(second_stage <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+
+stargazer(
+  first_stage,
+  second_stage,
+  column.labels = c("First stage", "Second stage"),
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("Labor flow SWE", "Labor flow pred"),
+  out = paste0("../outputs/regression_tables/05_iv_illustration_labor.html")
+  
+)
+
+
+# first and second stage separately
+summary(iv_egk <- ivreg::ivreg(coagg_porter_rca01_stand ~ io3_stand | iv_wiot_mean_stand, data = reg_df))
+
+# first stage with lm
+summary(first_stage <- lm(io3_stand ~ iv_wiot_mean_stand, data = reg_df))
+reg_df$first_stage_pred <- predict(first_stage, newdata = reg_df)
+cor(reg_df$lab_stand, reg_df$first_stage_pred)
+
+# second stage with lm
+summary(second_stage <- lm(coagg_porter_rca01_stand ~ first_stage_pred, data = reg_df))
+
+stargazer(
+  first_stage,
+  second_stage,
+  column.labels = c("First stage", "Second stage"),
+  omit.stat=c("f", "ser"),
+  dep.var.caption = "",
+  #omit = c("ind1", "ind2"),
+  #add.lines=list(c("Two way industry FE", "No", "Yes", "No", "Yes")),
+  #dep.var.labels = c("Coagglomeration (EGK)", "Coagglomeration (LC)"),
+  covariate.labels = c("Labor flow SWE", "Labor flow pred"),
+  out = paste0("../outputs/regression_tables/05_iv_illustration_labor.html")
+  
+)
+
+
+
+
+
+
+
+### --- Table -- labor flow SWE -- first stage illustration
+
+# first and second stage separately
 summary(iv_egk <- ivreg::ivreg(egk_coagg_stand ~ lab_stand | iv_swe_lab_stand, data = reg_df))
 
 # first stage with lm
@@ -635,6 +707,12 @@ stargazer(
   out = paste0("../outputs/regression_tables/05_iv_illustration.html")
   
 )
+
+
+
+
+
+
 
 
 

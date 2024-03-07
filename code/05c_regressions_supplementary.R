@@ -665,7 +665,7 @@ reg_df <- prep_baseline_regression_table(path)
 version <- "_services"
 
 # filter for services only
-services <- c(10, 34)
+services <- c(49, 89)
 services_df <- subset(
   reg_df,
   (ind1_2d >= services[1]) &
