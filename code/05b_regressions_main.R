@@ -235,8 +235,8 @@ stargazer(iec[[1]],
 
 ### --- Table 3 OLS with interactions
 #region_codes <- c("nuts3", "nuts4", "city")
-region_codes <- c("nuts3")
-#region_codes <- c("nuts4")
+#region_codes <- c("nuts3")
+region_codes <- c("nuts4")
 #version <- c("_same2digit_dropped")
 version <- c("")
 ei <- list()

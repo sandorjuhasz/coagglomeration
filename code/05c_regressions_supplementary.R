@@ -5,6 +5,7 @@
 
 library(data.table)
 library(dplyr)
+library(tidyr)
 library(stargazer)
 library(ivreg)
 library(lmtest)
@@ -658,6 +659,65 @@ stargazer(et, type="text")
 stargazer(pt, type="text")
 
 
+summary(int_ew <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm, data = manuf_df))
+summary(int_ew <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = manuf_df))
+
+interplot(m = int_ew,
+          #var1 = "io_wiot_hun",
+          var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_ew,
+          var1 = "sr_norm",
+          var2 = "io_norm3",
+          #var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+summary(int_pw <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = manuf_df))
+interplot(m = int_pw,
+          var1 = "io_wiot_hun",
+          #var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_pw,
+          var1 = "sr_norm",
+          #var2 = "io_norm3",
+          var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+summary(int_pw <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = manuf_df))
+interplot(m = int_pw,
+          #var1 = "io_wiot_hun",
+          var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_pw,
+          var1 = "sr_norm",
+          var2 = "io_norm3",
+          #var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+
+
+
 
 ### --- 01 -- services only
 path <- paste0("../data/oc15_2023_dec/04oc_data_", region_level, "_", focal_year, ".csv")
@@ -734,6 +794,351 @@ stargazer(
   out = paste0("../outputs/regression_tables/si_porter", version, ".html")
   #out = paste0("../outputs/regression_tables/si_interactions_nuts3_cse", version, ".tex")
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### --- 01 -- interplot w/ manuf and services lines
+fontsize <- 25
+version <- ""
+region_codes <- c("nuts3")
+#region_codes <- c("nuts4")
+model_version <- c("noFE", "FE")
+path <- paste0("../data/oc15_2023_dec/04oc_data_", version, region_codes, "_", focal_year, ".csv")
+reg_df <- prep_baseline_regression_table(path)
+
+# filter for manufacturing and services only
+manuf <- c(10, 34)
+manuf_df <- subset(
+  reg_df,
+  (ind1_2d >= manuf[1]) &
+    (ind1_2d < manuf[2]) &
+    (ind2_2d >= manuf[1]) &
+    (ind2_2d < manuf[2])
+)
+
+services <- c(49, 89)
+services_df <- subset(
+  reg_df,
+  (ind1_2d >= services[1]) &
+    (ind1_2d < services[2]) &
+    (ind2_2d >= services[1]) &
+    (ind2_2d < services[2])
+)
+
+
+int_prca <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = reg_df)
+#int_prca <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = reg_df)
+ip_a <- interplot(m = int_prca,
+                  var1 = "sr_norm",
+                  var2 = "io_norm3",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A")
+
+ip_b <- interplot(m = int_prca,
+                  var1 = "io_norm3",
+                  var2 = "sr_norm",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A")
+
+x_coords_main_a <- ggplot_build(ip_a)$data[[1]]$x
+y_coords_main_a <- ggplot_build(ip_a)$data[[1]]$y
+x_coords_main_b <- ggplot_build(ip_b)$data[[1]]$x
+y_coords_main_b <- ggplot_build(ip_b)$data[[1]]$y
+
+
+
+# manufacturing coords
+int_prca_manuf <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = manuf_df)
+#int_prca_manuf <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = manuf_df)
+
+ip_manuf_a <- interplot(m = int_prca_manuf, var1 = "sr_norm", var2 = "io_norm3", size=3, xmin = -1, xmax = 1,  rfill = "Black") +
+  aes(color = "") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  xlim(-1, 1) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=25)) +
+  theme(plot.margin = unit(c(2, 1, 0, 1), "cm")) +
+  guides(fill="none") +
+  theme(legend.position="none")
+
+x_coords_manuf_a <- ggplot_build(ip_manuf_a)$data[[1]]$x
+y_coords_manuf_a <- ggplot_build(ip_manuf_a)$data[[1]]$y
+
+
+ip_manuf_b <- interplot(m = int_prca_manuf, var1 = "io_norm3", var2 = "sr_norm", size=3, xmin = -1, xmax = 1,  rfill = "Black") +
+  aes(color = "") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  xlim(-1, 1) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=25)) +
+  theme(plot.margin = unit(c(2, 1, 0, 1), "cm")) +
+  guides(fill="none") +
+  theme(legend.position="none")
+
+x_coords_manuf_b <- ggplot_build(ip_manuf_b)$data[[1]]$x
+y_coords_manuf_b <- ggplot_build(ip_manuf_b)$data[[1]]$y
+
+
+
+
+# services coords
+int_prca_serv <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = services_df)
+#int_prca_serv <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = services_df)
+
+ip_serv_a <- interplot(m = int_prca_serv, var1 = "sr_norm", var2 = "io_norm3", size=3, xmin = -1, xmax = 1,  rfill = "Black") +
+  aes(color = "") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  xlim(-1, 1) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=25)) +
+  theme(plot.margin = unit(c(2, 1, 0, 1), "cm")) +
+  guides(fill="none") +
+  theme(legend.position="none")
+
+x_coords_serv_a <- ggplot_build(ip_serv_a)$data[[1]]$x
+y_coords_serv_a <- ggplot_build(ip_serv_a)$data[[1]]$y
+
+
+ip_serv_b <- interplot(m = int_prca_serv, var1 = "io_norm3", var2 = "sr_norm", size=3, xmin = -1, xmax = 1,  rfill = "Black") +
+  aes(color = "") +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  xlim(-1, 1) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=15), axis.title=element_text(size=25)) +
+  theme(plot.margin = unit(c(2, 1, 0, 1), "cm")) +
+  guides(fill="none") +
+  theme(legend.position="none")
+
+x_coords_serv_b <- ggplot_build(ip_serv_b)$data[[1]]$x
+y_coords_serv_b <- ggplot_build(ip_serv_b)$data[[1]]$y
+
+
+
+int_ms_a <- ggplot() +
+  geom_line(data = data.frame(x = x_coords_manuf_a, y = y_coords_manuf_a), aes(x, y), size = 2, color = "grey") +
+  geom_line(data = data.frame(x = x_coords_serv_a, y = y_coords_serv_a), aes(x, y), size = 2, color = "grey") +
+  geom_line(data = data.frame(x = x_coords_main_a, y = y_coords_main_a), aes(x, y), size = 4, color = "#15636A") +
+  annotate("text", x = 0.5, y = 0.225, label = "Manufacturing", color = "black", size=10) +
+  annotate("text", x = 0.435, y = 0.85, label = "Services", color = "black", size=10) +
+  xlab("IO (transactions)") +
+  ylab("Coeff. labor (SR)") +
+  ylim(-0.1, 0.9) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
+
+int_ms_b <- ggplot() +
+  geom_line(data = data.frame(x = x_coords_manuf_b, y = y_coords_manuf_b), aes(x, y), size = 2, color = "grey") +
+  geom_line(data = data.frame(x = x_coords_serv_b, y = y_coords_serv_b), aes(x, y), size = 2, color = "grey") +
+  geom_line(data = data.frame(x = x_coords_main_b, y = y_coords_main_b), aes(x, y), size = 4, color = "#15636A") +
+  annotate("text", x = 0.5, y = 0.115, label = "Manufacturing", color = "black", size=10) +
+  annotate("text", x = 0.435, y = 0.85, label = "Services", color = "black", size=10) +
+  xlab("Labor (SR)") +
+  ylab("Coeff. IO (transactions)") +
+  ylim(-0.1, 0.9) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
+
+
+
+# combine subplots
+subplots1 <- plot_grid(
+  int_ms_a, int_ms_b,
+  labels = c("A", "B"), label_size = fontsize, ncol = 2
+)
+
+# titles
+plot_title1 <- ggdraw() + draw_label("Coagglomeration (LC)", fontface="bold", size = fontsize)
+
+# combined version
+title <- paste0("si_interp_manuf_serv_", model_version[1])
+file_name <- paste0("../figures/", title, "_", region_codes, ".png")
+png(file_name, width=1000, height=400, units = 'px')
+plot_grid(plot_title1, subplots1, ncol=1, rel_heights=c(0.1, 1, 0.1, 1))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# this works mainly for LC coagglomeration (RCA01)
+int_prca <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = reg_df)
+
+ip_a <- interplot(m = int_prca,
+                  var1 = "sr_norm",
+                  var2 = "io_wiot_hun",
+                  #var2 = "io_norm3",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A") +
+  xlab("IO (WIOD)") +
+  ylab("Coeff. labor (SR)") +
+  ylim(0, 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
+
+ip_b <- interplot(m = int_prca,
+                  var1 = "io_wiot_hun",
+                  #var1 = "io_norm3",
+                  var2 = "sr_norm",
+                  size = 3,
+                  xmin = -1,
+                  xmax = 1,
+                  rfill = "#15636A") +
+  xlab("Labor (SR)") +
+  ylab("Coeff. IO (WIOD)") +
+  ylim(0, 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", size=1.5) +
+  theme_cowplot(12) +
+  theme(axis.text = element_text(size=fontsize-5), axis.title=element_text(size=fontsize)) +
+  theme(plot.margin = unit(c(2, 1.5, 0, 1), "cm"))
+
+
+# combine subplots
+subplots1 <- plot_grid(
+  ip_a, ip_b,
+  labels = c("A", "B"), label_size = fontsize, ncol = 2
+)
+
+
+
+
+
+
+
+
+
+
+# titles
+plot_title1 <- ggdraw() + draw_label("Coagglomeration (EGK)", fontface="bold", size = fontsize)
+plot_title2 <- ggdraw() + draw_label("Coagglomeration (LC)", fontface="bold", size = fontsize)
+
+
+# combined version
+title <- paste0("mf02_interplots_", model_version[1])
+file_name <- paste0("../figures/", title, "_", region_codes, ".png")
+png(file_name, width=1000, height=750, units = 'px')
+plot_grid(plot_title1, subplots1, plot_title2, subplots2, ncol=1, rel_heights=c(0.1, 1, 0.1, 1))
+dev.off()
+
+
+
+
+
+
+
+
+
+summary(int_ew <- lm(egk_coagg_stand ~ io_wiot_hun * sr_norm, data = services_df))
+interplot(m = int_ew,
+          var1 = "io_wiot_hun",
+          #var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_ew,
+          var1 = "sr_norm",
+          #var2 = "io_norm3",
+          var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+summary(int_ew <- lm(egk_coagg_stand ~ io_norm3 * sr_norm, data = services_df))
+interplot(m = int_ew,
+          #var1 = "io_wiot_hun",
+          var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_ew,
+          var1 = "sr_norm",
+          var2 = "io_norm3",
+          #var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+
+summary(int_pw <- lm(coagg_porter_rca01_stand ~ io_wiot_hun * sr_norm, data = services_df))
+interplot(m = int_pw,
+          var1 = "io_wiot_hun",
+          #var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_pw,
+          var1 = "sr_norm",
+          #var2 = "io_norm3",
+          var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+summary(int_pw <- lm(coagg_porter_rca01_stand ~ io_norm3 * sr_norm, data = services_df))
+interplot(m = int_pw,
+          #var1 = "io_wiot_hun",
+          var1 = "io_norm3",
+          var2 = "sr_norm",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+interplot(m = int_pw,
+          var1 = "sr_norm",
+          var2 = "io_norm3",
+          #var2 = "io_wiot_hun",
+          size = 3,
+          xmin = -1,
+          xmax = 1,
+          rfill = "#15636A") 
+
+
 
 
 
