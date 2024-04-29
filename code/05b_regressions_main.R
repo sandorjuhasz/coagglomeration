@@ -345,6 +345,7 @@ ip_a <- interplot(m = int_egk,
                  var1 = "sr_norm",
                  var2 = "io_wiot_hun",
                  #var2 = "io_norm3",
+                 ci = .95,
                  size = 3,
                  xmin = -1,
                  xmax = 1,
@@ -361,6 +362,7 @@ ip_b <- interplot(m = int_egk,
                  var1 = "io_wiot_hun",
                  #var1 = "io_norm3",
                  var2 = "sr_norm",
+                 ci = .95,
                  size = 3,
                  xmin = -1,
                  xmax = 1,
@@ -382,6 +384,7 @@ ip_c <- interplot(m = int_pemp,
                   var1 = "sr_norm",
                   var2 = "io_wiot_hun",
                   #var2 = "io_norm3",
+                  ci = .95,
                   size = 3,
                   xmin = -1,
                   xmax = 1,
@@ -398,6 +401,7 @@ ip_d <- interplot(m = int_pemp,
                   var1 = "io_wiot_hun",
                   #var1 = "io_norm3",
                   var2 = "sr_norm",
+                  ci = .95,
                   size = 3,
                   xmin = -1,
                   xmax = 1,
@@ -428,7 +432,7 @@ plot_title2 <- ggdraw() + draw_label("Coagglomeration (LC)", fontface="bold", si
 
 
 # combined version
-title <- paste0("mf02_interplots_", model_version[1])
+title <- paste0("mf02_interplots_c95_", model_version[1])
 file_name <- paste0("../figures/", title, "_", region_codes, ".png")
 png(file_name, width=1000, height=750, units = 'px')
 plot_grid(plot_title1, subplots1, plot_title2, subplots2, ncol=1, rel_heights=c(0.1, 1, 0.1, 1))
@@ -1069,6 +1073,38 @@ summary(ivreg::ivreg(egk_coagg_stand ~ io2_stand + lab_stand | iv_wiot_mean_stan
 summary(ivreg::ivreg(coagg_porter_rca01_stand ~ io2_stand + lab_stand | iv_wiot_mean_stand + iv_swe_lab_stand, data = reg_df))
 
 
+
+
+
+
+
+
+
+# KP test -- data prep for Czaller
+region_codes <- c("nuts4")
+for(r in 1:length(region_codes)){
+  # file from OC
+  path <- paste0("../data/oc15_2023_dec/04oc_data_", region_codes[r], "_", focal_year, ".csv")
+  reg_df <- prep_baseline_regression_table(path)
+  
+  # remove rows where 2-digit industries are the same
+  if(version != ""){
+    reg_df <- reg_df[complete.cases(reg_df[ , c("io_norm2")]), ]
+  }
+} 
+
+
+# baseline models -- EGK and Porter
+lm(egk_coagg_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+lm(coagg_porter_rca01_stand ~ io_wiot_hun_stand + lab_stand, data = reg_df)
+
+
+write.table(
+  reg_df,
+  paste0("../outputs/reg_df_for_KP_nuts4.csv"),
+  sep=";",
+  row.names = FALSE
+)
 
 
 
