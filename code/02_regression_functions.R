@@ -85,6 +85,47 @@ prep_baseline_regression_table <- function(path)
 
 
 
+
+
+
+combined_regression_df <- function(regions, export)
+{
+  selected_columns <- c("ind1", "ind2", "egk_coagg_stand", "coagg_porter_rca01_stand")
+  reg_df <- list()
+  for(r in 1:length(regions)){
+    print(regions[r])
+    path <- paste0("../data/oc15_2023_dec/04oc_data_", regions[r], "_2017.csv")
+    reg_df[[r]] <- prep_baseline_regression_table(path)
+  }
+  reg_df <- merge(
+    reg_df[[1]],
+    reg_df[[2]][, ..selected_columns],
+    by = c("ind1", "ind2"),
+    all.x = TRUE,
+    all.y = FALSE,
+    suffixes = c("_nuts3", "_nuts4")
+  )
+  if(export==TRUE){
+    write.table(reg_df,
+                paste0("../outputs/reg_df_with_normalized_variables_2017.csv"),
+                row.names = FALSE,
+                col.names = TRUE,
+                sep = ";"
+    )
+  }
+  
+  return(reg_df)
+}
+
+
+
+
+
+
+
+
+
+
 manufacturing_filter <- function(data)
 {
   data <- subset(
@@ -93,6 +134,8 @@ manufacturing_filter <- function(data)
   )
   return(data)
 }
+
+
 
 
 
