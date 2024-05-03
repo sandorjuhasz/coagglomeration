@@ -62,7 +62,7 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_mean_stand), cluster(
 
 
 
-** SI -- multivariate -- clustered SE
+** Table SI8 -- multivariate -- clustered SE
 
 * iv_cse_mu1
 ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand lab_stand = iv_wiot_mean_stand iv_swe_lab_stand), cluster(ind1 ind2)
@@ -91,7 +91,7 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand lab_stand = iv_wiot_mean_stand 
 
 
 
-** SI -- multivariate -- robust SE
+** Table SI9 -- multivariate -- robust SE
 
 * iv_rob_mu1
 ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand lab_stand = iv_wiot_mean_stand iv_swe_lab_stand), robust
@@ -120,7 +120,7 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand lab_stand = iv_wiot_mean_stand 
 
 
 
-** SI -- univar US supply
+** Table SI10 -- univar US supply
 
 * iv_us1
 ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_us_supply_stand), cluster(ind1 ind2)
@@ -150,7 +150,7 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_us_supply_stand), cluster(
 
 
 
-** SI -- univar CZE WIOD
+** Table SI11 -- univar CZE WIOD
 
 * iv_cze1
 ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
@@ -177,6 +177,150 @@ ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(i
 ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
 
 
+
+
+** Table SI13 -- univar manufacturing LABOR
+insheet using "../02_data/source/manufacturing_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+
+* uiv_labor_manu1
+ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_labor_manu2
+ivreg2 egk_coagg_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_labor_manu3
+ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = lab_stand), cluster(ind1 ind2)
+
+* uiv_labor_manu4
+ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = lab_stand), cluster(ind1 ind2)
+
+
+** Table SI14 -- univar manufacturing IO
+
+* uiv_io_manu1
+ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu2
+ivreg2 egk_coagg_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu3
+ivreg2 egk_coagg_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu4
+ivreg2 egk_coagg_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu5
+ivreg2 coagg_porter_rca01_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu6
+ivreg2 coagg_porter_rca01_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu7
+ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_manu8
+ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+
+
+
+
+
+** Table SI16 -- univar services LABOR
+insheet using "../02_data/source/services_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+
+* uiv_labor_servm1
+ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_labor_servm2
+ivreg2 egk_coagg_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_labor_servm3
+ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = lab_stand), cluster(ind1 ind2)
+
+* uiv_labor_servm4
+ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = lab_stand), cluster(ind1 ind2)
+
+
+** Table SI17 -- univar services IO
+
+* uiv_io_servm1
+ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm2
+ivreg2 egk_coagg_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm3
+ivreg2 egk_coagg_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm4
+ivreg2 egk_coagg_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm5
+ivreg2 coagg_porter_rca01_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm6
+ivreg2 coagg_porter_rca01_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm7
+ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+* uiv_io_servm8
+ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+
+
+
+
+
+
+** Table SI19 -- univar excluding BP
+insheet using "../02_data/source/budapest_excluded_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+
+* uiv_io_bpe1
+ivreg2 egk_coagg_stand (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_io_bpe2
+ivreg2 egk_coagg_stand (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+* uiv_io_bpe3
+ivreg2 egk_coagg_stand (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+* uiv_io_bpe4
+ivreg2 coagg_porter_rca01_stand (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_io_bpe5
+ivreg2 coagg_porter_rca01_stand (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+* uiv_io_bpe6
+ivreg2 coagg_porter_rca01_stand (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+
+
+
+
+
+
+
+** Table SI21 -- univar single plants
+insheet using "../02_data/source/single_plants_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+
+* uiv_single1
+ivreg2 egk_coagg_stand (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_single2
+ivreg2 egk_coagg_stand (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+* uiv_single3
+ivreg2 egk_coagg_stand (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+* uiv_single4
+ivreg2 coagg_porter_rca01_stand (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
+
+* uiv_single5
+ivreg2 coagg_porter_rca01_stand (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
+
+* uiv_single6
+ivreg2 coagg_porter_rca01_stand (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 
 
