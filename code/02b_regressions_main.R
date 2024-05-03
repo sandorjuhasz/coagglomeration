@@ -12,7 +12,7 @@ library(interplot)
 library(cowplot)
 library(lmtest)
 library(margins)
-
+library(stargazer)
 
 source("../code/02_regression_functions.R")
 
@@ -26,6 +26,44 @@ regions <- c("nuts3", "nuts4")
 
 # data prep
 reg_df <- combined_regression_df(regions, export = TRUE)
+
+
+
+### --- Table 1 descriptive statistics
+# columns for the descriptive stat table
+for_desc <- reg_df %>%
+  dplyr::select(
+    egk_coagg_nuts3,
+    coagg_porter_rca01_nuts3,
+    egk_coagg_nuts4,
+    coagg_porter_rca01_nuts4,
+    sr_norm,
+    io_wiot_hun,
+    io_norm3,
+    swe_sr_norm,
+    iv_wiot_mean
+  ) %>%
+  data.table()
+
+# table construction
+stargazer(
+  for_desc,
+  digits = 3,
+  covariate.labels = c(
+    "Coagglomeration (EGK) NUTS3",
+    "Coagglomeration (LC) NUTS3",
+    "Coagglomeration (EGK) NUTS4",
+    "Coagglomeration (LC) NUTS4",
+    "Labor (SR)",
+    "IO (WIOD)",
+    "IO (transactions)",
+    "Labor (Swedish SR)",
+    "IO (WIOD mean)"
+  ),
+  out = paste0("../outputs/Table1_descr_stats_table.html")
+)
+
+
 
 
 

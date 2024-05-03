@@ -90,7 +90,7 @@ prep_baseline_regression_table <- function(path)
 
 combined_regression_df <- function(regions, export)
 {
-  selected_columns <- c("ind1", "ind2", "egk_coagg_stand", "coagg_porter_rca01_stand")
+  selected_columns <- c("ind1", "ind2", "egk_coagg", "coagg_porter_rca01", "egk_coagg_stand", "coagg_porter_rca01_stand")
   reg_df <- list()
   for(r in 1:length(regions)){
     print(regions[r])
