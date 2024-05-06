@@ -9,26 +9,33 @@
 
 cd "d:/_Hellforge/Vanguard/Operations/Papers/bnet02_coagglo/03_scripts"
 
+* ANALYSIS
+
+** Start log at destination
+
+log using "../04_output/kp_test/kp_test.log", replace
+
 ** Load data
 
-insheet using "../02_data/source/reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+insheet using "../02_data/source/kp_test_data/reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
-* ANALYSIS
+replace iv_us_supply_stand = "" if iv_us_supply_stand == "NA"
+destring iv_us_supply_stand, replace
 
 
 ** Table 3 -- Labor IV -- univariate
 
 * uiv_labor_m1
-ivreg2 egk_coagg_stand_nuts3 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_m2
-ivreg2 egk_coagg_stand_nuts4 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_m3
-ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_m4
-ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 
 
@@ -178,9 +185,10 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(i
 
 
 
+** Load data
+insheet using "../02_data/source/kp_test_data/manufacturing_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
 ** Table SI13 -- univar manufacturing LABOR
-insheet using "../02_data/source/manufacturing_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
 * uiv_labor_manu1
 ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
@@ -189,10 +197,10 @@ ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 ivreg2 egk_coagg_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_manu3
-ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_manu4
-ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 
 ** Table SI14 -- univar manufacturing IO
@@ -225,9 +233,11 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(i
 
 
 
+** Load data
+
+insheet using "../02_data/source/kp_test_data/services_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
 ** Table SI16 -- univar services LABOR
-insheet using "../02_data/source/services_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
 * uiv_labor_servm1
 ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
@@ -236,10 +246,10 @@ ivreg2 egk_coagg_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 ivreg2 egk_coagg_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_servm3
-ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 * uiv_labor_servm4
-ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = lab_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
 
 
 ** Table SI17 -- univar services IO
@@ -272,9 +282,17 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(i
 
 
 
+** Load data
+
+insheet using "../02_data/source/kp_test_data/budapest_excluded_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+
+replace egk_coagg_stand = "" if egk_coagg_stand == "NA"
+destring egk_coagg_stand, replace
+
+replace coagg_porter_rca01_stand = "" if coagg_porter_rca01_stand == "NA"
+destring coagg_porter_rca01_stand, replace
 
 ** Table SI19 -- univar excluding BP
-insheet using "../02_data/source/budapest_excluded_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
 * uiv_io_bpe1
 ivreg2 egk_coagg_stand (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
@@ -299,10 +317,17 @@ ivreg2 coagg_porter_rca01_stand (io3_stand = iv_wiot_mean_stand), cluster(ind1 i
 
 
 
+** Load data
 
+insheet using "../02_data/source/kp_test_data/single_plants_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
+
+replace egk_coagg_stand = "" if egk_coagg_stand == "NA"
+destring egk_coagg_stand, replace
+
+replace coagg_porter_rca01_stand = "" if coagg_porter_rca01_stand == "NA"
+destring coagg_porter_rca01_stand, replace
 
 ** Table SI21 -- univar single plants
-insheet using "../02_data/source/single_plants_reg_df_with_normalized_variables_2017.csv", delimiter(";") clear
 
 * uiv_single1
 ivreg2 egk_coagg_stand (lab_stand = iv_swe_lab_stand), cluster(ind1 ind2)
@@ -324,20 +349,6 @@ ivreg2 coagg_porter_rca01_stand (io3_stand = iv_wiot_mean_stand), cluster(ind1 i
 
 
 
+** Stop log
 
-
-
-
-
-/*
-Example R regression for comparison
-
-ivm1 <- feols(egk_coagg_stand_nuts3 ~ 1 | io_wiot_hun_stand + lab_stand ~ iv_wiot_mean_stand + iv_swe_lab_stand,
-              cluster = ~ind1 + ind2,
-              data = reg_df)
-*/
-
-
-ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand lab_stand = iv_wiot_mean_stand iv_swe_lab_stand), cluster(ind1 ind2)
-
-ivreg2 egk_coagg_stand_nuts3 (io3_stand lab_stand = iv_wiot_mean_stand iv_swe_lab_stand), cluster(ind1 ind2)
+log close
