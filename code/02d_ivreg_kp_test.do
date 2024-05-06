@@ -206,28 +206,28 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(in
 ** Table SI14 -- univar manufacturing IO
 
 * uiv_io_manu1
-ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu2
-ivreg2 egk_coagg_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts4 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu3
-ivreg2 egk_coagg_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts3 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu4
-ivreg2 egk_coagg_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts4 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu5
-ivreg2 coagg_porter_rca01_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu6
-ivreg2 coagg_porter_rca01_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu7
-ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_manu8
-ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 
 
@@ -255,28 +255,28 @@ ivreg2 coagg_porter_rca01_stand_nuts4 (lab_stand = iv_swe_lab_stand), cluster(in
 ** Table SI17 -- univar services IO
 
 * uiv_io_servm1
-ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts3 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm2
-ivreg2 egk_coagg_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts4 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm3
-ivreg2 egk_coagg_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts3 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm4
-ivreg2 egk_coagg_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 egk_coagg_stand_nuts4 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm5
-ivreg2 coagg_porter_rca01_stand_nuts3 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm6
-ivreg2 coagg_porter_rca01_stand_nuts4 (io_wiot_hun_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (io_wiot_hun_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm7
-ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts3 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 * uiv_io_servm8
-ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_cze_stand), cluster(ind1 ind2)
+ivreg2 coagg_porter_rca01_stand_nuts4 (io3_stand = iv_wiot_mean_stand), cluster(ind1 ind2)
 
 
 
