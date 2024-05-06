@@ -337,6 +337,13 @@ etable(
 
 # multivar OLS manufacturing
 mreg_df <- manufacturing_filter(reg_df)
+write.table(mreg_df,
+            paste0("../outputs/manufacturing_reg_df_with_normalized_variables_2017.csv"),
+            row.names = FALSE,
+            col.names = TRUE,
+            sep = ";"
+)
+
 
 manu1 <- feols(egk_coagg_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
             #vcov = "HC1",
@@ -450,6 +457,13 @@ etable(
 
 # multivar OLS services
 sreg_df <- services_filter(reg_df)
+write.table(sreg_df,
+            paste0("../outputs/services_reg_df_with_normalized_variables_2017.csv"),
+            row.names = FALSE,
+            col.names = TRUE,
+            sep = ";"
+)
+
 
 servm1 <- feols(egk_coagg_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
                cluster = ~ind1 + ind2,
