@@ -452,7 +452,7 @@ etable(
   tex = TRUE
 )
 
-
+etable(uiv_io_manu1, uiv_io_manu2, uiv_io_manu3, uiv_io_manu4, uiv_io_manu5, uiv_io_manu6, uiv_io_manu7, uiv_io_manu8)
 
 
 # multivar OLS services
