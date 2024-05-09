@@ -717,9 +717,9 @@ etable(uiv_single1, uiv_single2, uiv_single3, uiv_single4, uiv_single5, uiv_sing
 
 
 
-### -- S7 NUTS3 interactions and interplots
+### -- S9 interactions models -- alternative settings
 
-# data prep
+# NUTS3 version
 reg_df <- combined_regression_df(regions, export = TRUE)
 
 sint_m1 <- feols(egk_coagg_stand_nuts3 ~ io_wiot_hun_stand * lab_stand,
@@ -762,6 +762,180 @@ etable(
 
 
 
+
+# manufacturing
+mreg_df <- manufacturing_filter(reg_df)
+
+sint_m1 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+sint_m2 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+sint_m3 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+sint_m4 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+
+sint_m5 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+sint_m6 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+sint_m7 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+sint_m8 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = mreg_df)
+
+
+etable(sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8)
+
+etable(
+  sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8,
+  fitstat = c("r2", "ar2"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+
+
+
+# services
+sreg_df <- services_filter(reg_df)
+
+sint_m1 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+sint_m2 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+sint_m3 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+sint_m4 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+
+sint_m5 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+sint_m6 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+sint_m7 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+sint_m8 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = sreg_df)
+
+
+etable(sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8)
+
+
+etable(
+  sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8,
+  fitstat = c("r2", "ar2"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+
+
+
+
+
+
+
+
+# budapest excluded
+path <- paste0("../data/oc15_2023_dec/04oc_data_", regions[2], "_", focal_year, ".csv")
+path2 <- paste0("../data/oc15_2023_dec/04b_oc_data_budapest_excluded_", regions[2], "_", focal_year, ".csv")
+bpe_df <- prep_alternative_table(path, path2)
+
+
+sint_m1 <- feols(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+sint_m2 <- feols(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+sint_m3 <- feols(egk_coagg_stand ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+sint_m4 <- feols(egk_coagg_stand ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+
+sint_m5 <- feols(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+sint_m6 <- feols(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+sint_m7 <- feols(coagg_porter_rca01_stand ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+sint_m8 <- feols(coagg_porter_rca01_stand ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = bpe_df)
+
+
+etable(sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8)
+
+etable(
+  sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8,
+  fitstat = c("r2", "ar2"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+
+
+
+
+# single plant companies ONLY
+path <- paste0("../data/oc15_2023_dec/04oc_data_", regions[2], "_", focal_year, ".csv")
+path2 <- paste0("../data/oc15_2023_dec/04d_oc_data_single_plant_", regions[2], "_", focal_year, ".csv")
+single_df <- prep_alternative_table(path, path2)
+
+
+sint_m1 <- feols(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+sint_m2 <- feols(egk_coagg_stand ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+sint_m3 <- feols(egk_coagg_stand ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+sint_m4 <- feols(egk_coagg_stand ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+
+sint_m5 <- feols(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+sint_m6 <- feols(coagg_porter_rca01_stand ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+sint_m7 <- feols(coagg_porter_rca01_stand ~ io3_stand * lab_stand,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+sint_m8 <- feols(coagg_porter_rca01_stand ~ io3_stand * lab_stand | ind1 + ind2,
+                 cluster = ~ind1 + ind2,
+                 data = single_df)
+
+
+etable(sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8)
 
 
 
