@@ -1,5 +1,10 @@
-# Coagglomeration project
+# Coagglomeration, labor flows and buyer-supplier ties
 
-coagglomeration, business transactions and labor flow
+```work-in-progress```
 
-work-in-progress
+This repository contains data and code to reproduce the figures and results of the following research paper:
+
+Juhász, S., Elekes, Z., Ilyés, V. and Neffke, F. (2024) Colocation of skill related suppliers -- Revisiting coagglomeration using firm-to-firm network data. [arxiv](arxiv)
+
+[Abstract] <br/>
+*Strong local clusters help firms compete on global markets. One explanation for this is that firms benefit from locating close to their suppliers and customers. However, the emergence of global supply chains shows that physical proximity is not necessarily a prerequisite to successfully manage customer-supplier relations anymore. This raises the question when firms need to colocate in value chains and when they can coordinate over longer distances. We hypothesize that one important aspect is the extent to which supply chain partners exchange not just goods but also know-how. To test this, we build on an expanding literature that studies the drivers of industrial coagglomeration to analyze when supply chain connections lead firms to colocation. We exploit detailed micro-data for the Hungarian economy between 2015 and 2017, linking firm registries, employer-employee matched data and firm-to-firm transaction data from value-added tax records. This allows us to observe colocation, labor flows and value chain connections at the level of firms, as well as construct aggregated coagglomeration patterns, skill relatedness and input-output connections between pairs of industries. We show that supply chains are more likely to support coagglomeration when the industries involved are also skill related. That is, input-output and labor market channels reinforce each other, but supplier connections only matter for colocation when industries have similar labor requirements, suggesting that they employ similar types of know-how. We corroborate this finding by analyzing the interactions between firms, showing that supplier relations are more geographically constrained between companies that operate in skill related industries.*
