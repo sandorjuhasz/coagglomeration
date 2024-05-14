@@ -1,4 +1,4 @@
-# Coagglomeration, labor flows and buyer-supplier ties
+# Coagglomeration, labor flows and supply chains
 
 ```work-in-progress```
 
