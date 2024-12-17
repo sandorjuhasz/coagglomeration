@@ -28,6 +28,7 @@ regions <- c("nuts3", "nuts4")
 epo_df <- fread("../data/patent_data/OECD_patent_data_2024SEPT/OECD_REGPAT_202401/202401_EPO_IPC.txt")
 
 # focal period
+epo_df <- subset(epo_df, (prio_year<=focal_year))
 #epo_df <- subset(epo_df, (prio_year>=2015) & (prio_year<=2017))
 
 # applicant region
@@ -35,7 +36,7 @@ epo_df <- fread("../data/patent_data/OECD_patent_data_2024SEPT/OECD_REGPAT_20240
 app_df <- fread("../data/patent_data/OECD_patent_data_2024SEPT/OECD_REGPAT_202401/202401_EPO_Inv_reg.txt")
 app_df <- app_df %>%
   filter(ctry_code == "HU") %>%
-  select(appln_id, ctry_code) %>%
+  dplyr::select(appln_id, ctry_code) %>%
   unique() %>%
   data.table()
 
@@ -54,12 +55,12 @@ epo_df$IPC4d <- substr(epo_df$IPC, 1, 4)
 
 # clean EPO
 epo_df <- epo_df %>%
-  select(appln_id, ctry_code, IPC4d) %>%
+  dplyr::select(appln_id, ctry_code, IPC4d) %>%
   unique() %>%
   data.table()
 
 write.table(epo_df,
-            paste0("../outputs/epo_2015_2017_Hungary.csv"),
+            paste0("../outputs/epo_until_2017_Hungary.csv"),
             row.names = FALSE,
             col.names = TRUE,
             sep = ";"
@@ -74,7 +75,7 @@ gc()
 ###### citations ######
 
 # EPO patents in Hungary 2015-2017
-epo_df <- fread("../outputs/epo_2015_2017_Hungary.csv")
+epo_df <- fread("../outputs/epo_until_2017_Hungary.csv")
 epo_df <- dplyr::select(epo_df, appln_id, ctry_code) %>% unique()
 
 # citation table
@@ -105,7 +106,7 @@ ctable <- cdf %>%
   dplyr::select(appln_id_citing = Citing_appln_id, appln_id_cited = Cited_Appln_id)
   
 # add tech codes to citation relations in Hungary
-epo_df <- fread("../outputs/epo_2015_2017_Hungary.csv")
+epo_df <- fread("../outputs/epo_until_2017_Hungary.csv")
 epo_df <- dplyr::select(epo_df, appln_id, IPC4d) %>% unique()
 
 # add tech codes to citation table
@@ -193,9 +194,24 @@ cr_norm <- cnace %>%
   mutate(c_rel = c_ij / ((c_i * c_j) / c)) %>%
   mutate(cr_norm = (c_rel - 1) / (c_rel + 1)) %>%
   data.table()
-
 cr_norm$cr_norm[is.na(cr_norm$cr_norm) == 1] <- -1
+
+
+# edge id
+cr_norm[, e_id := .GRP, by = .(pmin(ind_i, ind_j), pmax(ind_i, ind_j))]
+
+
+# make undirected
+cr_norm <- cr_norm %>%
+  arrange(e_id, ind_i, ind_j) %>%
+  group_by(e_id) %>%
+  mutate(cr_norm = sum(cr_norm, na.rm = TRUE) / 2) %>%
+  data.table()
+
+
+# one-way only
 #cr_norm <- subset(cr_norm, ind_i < ind_j)
+
 
 # export
 write.table(cr_norm,

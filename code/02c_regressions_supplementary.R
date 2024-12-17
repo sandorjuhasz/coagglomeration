@@ -942,6 +942,7 @@ etable(sint_m1, sint_m2, sint_m3, sint_m4, sint_m5, sint_m6, sint_m7, sint_m8)
 
 
 
+
 ### revision -- citation based relatedness
 reg_df <- combined_regression_df(regions, export = TRUE)
 cr_norm <- fread("../outputs/cr_norm_citation.csv")
