@@ -3,7 +3,8 @@
 
 
 ###### 01 patent data ######
-###### 02 patent data ######
+###### 02 effect comparison -- IO max and labor average  ######
+###### 03 KIS comparison ######
 
 
 
@@ -299,6 +300,84 @@ effects <- rbind(effects, calculate_effects(m5, "io_wiot_hun_stand", "lab_stand"
 effects <- rbind(effects, calculate_effects(m6, "io_wiot_hun_stand", "lab_stand", reg_df, "m6"))
 effects <- rbind(effects, calculate_effects(m7, "io3_stand", "lab_stand", reg_df, "m7"))
 effects <- rbind(effects, calculate_effects(m8, "io3_stand", "lab_stand", reg_df, "m8"))
+
+
+
+
+
+
+###### 03 KIS comparison ######
+
+
+
+# data prep
+reg_df <- combined_regression_df(regions, export = TRUE)
+
+
+# KIS table
+kis_table <- fread("../data/KIS_industries_2digit.csv")
+kis_table$KIS01 <- 1
+
+reg_df <- merge(
+  reg_df,
+  kis_table,
+  by.x = "ind1_2d",
+  by.y = "ind",
+  all.x = TRUE,
+  all.y = FALSE
+)
+reg_df <- merge(
+  reg_df,
+  kis_table,
+  by.x = "ind2_2d",
+  by.y = "ind",
+  all.x = TRUE,
+  all.y = FALSE,
+  suffixes = c("_1", "_2")
+)
+reg_df$KIS01_1[is.na(reg_df$KIS01_1)==1] <- 0
+reg_df$KIS01_2[is.na(reg_df$KIS01_2)==1] <- 0
+
+kis_subset <- subset(reg_df, (KIS01_1 == 1) & KIS01_2 == 1)
+
+
+
+### --- Table 2 -- clustered SE
+m1 <- feols(egk_coagg_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
+            #vcov = "HC1",
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+m2 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+m3 <- feols(egk_coagg_stand_nuts3 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+m4 <- feols(egk_coagg_stand_nuts4 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+
+m5 <- feols(coagg_porter_rca01_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+m6 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+m7 <- feols(coagg_porter_rca01_stand_nuts3 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+m8 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = kis_subset)
+
+etable(
+  m1, m2, m3, m4, m5, m6, m7, m8,
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = FALSE
+)
+
 
 
 
