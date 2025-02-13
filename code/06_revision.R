@@ -308,8 +308,6 @@ effects <- rbind(effects, calculate_effects(m8, "io3_stand", "lab_stand", reg_df
 
 ###### 03 KIS comparison ######
 
-
-
 # data prep
 reg_df <- combined_regression_df(regions, export = TRUE)
 
@@ -339,10 +337,10 @@ reg_df$KIS01_1[is.na(reg_df$KIS01_1)==1] <- 0
 reg_df$KIS01_2[is.na(reg_df$KIS01_2)==1] <- 0
 
 kis_subset <- subset(reg_df, (KIS01_1 == 1) & KIS01_2 == 1)
+not_kis_subset <- subset(reg_df, (KIS01_1 == 0) & KIS01_2 == 0)
 
 
-
-### --- Table 2 -- clustered SE
+### --- Table 2 -- KIS (knowledge-intensive services)
 m1 <- feols(egk_coagg_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
             #vcov = "HC1",
             cluster = ~ind1 + ind2,
@@ -375,9 +373,240 @@ etable(
   digits = 3,
   digits.stats = 3,
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  tex = FALSE
+  tex = TRUE
 )
 
+
+
+# univar labor IV -- KIS
+uiv_labor_kis1 <- feols(egk_coagg_stand_nuts3 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                         cluster = ~ind1 + ind2,
+                         data = kis_subset)
+uiv_labor_kis2 <- feols(egk_coagg_stand_nuts4 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                         cluster = ~ind1 + ind2,
+                         data = kis_subset)
+
+uiv_labor_kis3 <- feols(coagg_porter_rca01_stand_nuts3 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                         cluster = ~ind1 + ind2,
+                         data = kis_subset)
+uiv_labor_kis4 <- feols(coagg_porter_rca01_stand_nuts4 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                         cluster = ~ind1 + ind2,
+                         data = kis_subset)
+
+etable(
+  uiv_labor_kis1, uiv_labor_kis2, uiv_labor_kis3, uiv_labor_kis4,
+  fitstat = c("r2", "ar2", "ivfall", "wh"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+etable(uiv_labor_kis1, uiv_labor_kis2, uiv_labor_kis3, uiv_labor_kis4,
+       fitstat = c("r2", "ar2", "ivf1", "wh"))
+
+
+
+
+
+
+# univar IO IV KIS
+uiv_io_kis1 <- feols(egk_coagg_stand_nuts3 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                      #vcov = "HC1",
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+uiv_io_kis2 <- feols(egk_coagg_stand_nuts4 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+uiv_io_kis3 <- feols(egk_coagg_stand_nuts3 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+uiv_io_kis4 <- feols(egk_coagg_stand_nuts4 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+
+uiv_io_kis5 <- feols(coagg_porter_rca01_stand_nuts3 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+uiv_io_kis6 <- feols(coagg_porter_rca01_stand_nuts4 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+uiv_io_kis7 <- feols(coagg_porter_rca01_stand_nuts3 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+uiv_io_kis8 <- feols(coagg_porter_rca01_stand_nuts4 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                      cluster = ~ind1 + ind2,
+                      data = kis_subset)
+
+
+etable(
+  uiv_io_kis1, uiv_io_kis2, uiv_io_kis3, uiv_io_kis4, uiv_io_kis5, uiv_io_kis6, uiv_io_kis7, uiv_io_kis8,
+  fitstat = c("r2", "ar2", "f", "wh"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+
+etable(uiv_io_kis1, uiv_io_kis2, uiv_io_kis3, uiv_io_kis4, uiv_io_kis5, uiv_io_kis6, uiv_io_kis7, uiv_io_kis8)
+
+
+
+
+
+### --- Table 2 -- non-KIS (knowledge-intensive services)
+m1 <- feols(egk_coagg_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
+            #vcov = "HC1",
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+m2 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+m3 <- feols(egk_coagg_stand_nuts3 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+m4 <- feols(egk_coagg_stand_nuts4 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+
+m5 <- feols(coagg_porter_rca01_stand_nuts3 ~ io_wiot_hun_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+m6 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+m7 <- feols(coagg_porter_rca01_stand_nuts3 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+m8 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand + lab_stand,
+            cluster = ~ind1 + ind2,
+            data = not_kis_subset)
+
+etable(
+  m1, m2, m3, m4, m5, m6, m7, m8,
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+etable(m1, m2, m3, m4, m5, m6, m7, m8)
+
+
+# univar labor IV -- KIS
+uiv_labor_kis1 <- feols(egk_coagg_stand_nuts3 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                        cluster = ~ind1 + ind2,
+                        data = not_kis_subset)
+uiv_labor_kis2 <- feols(egk_coagg_stand_nuts4 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                        cluster = ~ind1 + ind2,
+                        data = not_kis_subset)
+
+uiv_labor_kis3 <- feols(coagg_porter_rca01_stand_nuts3 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                        cluster = ~ind1 + ind2,
+                        data = not_kis_subset)
+uiv_labor_kis4 <- feols(coagg_porter_rca01_stand_nuts4 ~ 1 | lab_stand ~ iv_swe_lab_stand,
+                        cluster = ~ind1 + ind2,
+                        data = not_kis_subset)
+
+etable(
+  uiv_labor_kis1, uiv_labor_kis2, uiv_labor_kis3, uiv_labor_kis4,
+  fitstat = c("r2", "ar2", "ivfall", "wh"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+etable(uiv_labor_kis1, uiv_labor_kis2, uiv_labor_kis3, uiv_labor_kis4,
+       fitstat = c("r2", "ar2", "ivf1", "wh"))
+
+
+
+
+
+
+# univar IO IV KIS
+uiv_io_kis1 <- feols(egk_coagg_stand_nuts3 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                     #vcov = "HC1",
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+uiv_io_kis2 <- feols(egk_coagg_stand_nuts4 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+uiv_io_kis3 <- feols(egk_coagg_stand_nuts3 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+uiv_io_kis4 <- feols(egk_coagg_stand_nuts4 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+
+uiv_io_kis5 <- feols(coagg_porter_rca01_stand_nuts3 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+uiv_io_kis6 <- feols(coagg_porter_rca01_stand_nuts4 ~ 1 | io_wiot_hun_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+uiv_io_kis7 <- feols(coagg_porter_rca01_stand_nuts3 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+uiv_io_kis8 <- feols(coagg_porter_rca01_stand_nuts4 ~ 1 | io3_stand ~ iv_wiot_mean_stand,
+                     cluster = ~ind1 + ind2,
+                     data = not_kis_subset)
+
+
+etable(
+  uiv_io_kis1, uiv_io_kis2, uiv_io_kis3, uiv_io_kis4, uiv_io_kis5, uiv_io_kis6, uiv_io_kis7, uiv_io_kis8,
+  fitstat = c("r2", "ar2", "f", "wh"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = TRUE
+)
+
+etable(uiv_io_kis1, uiv_io_kis2, uiv_io_kis3, uiv_io_kis4, uiv_io_kis5, uiv_io_kis6, uiv_io_kis7, uiv_io_kis8)
+
+
+
+
+
+
+
+
+### -- interaction models -- KIS
+int_m1 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * lab_stand,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+int_m2 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+int_m3 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * lab_stand,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+int_m4 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+
+int_m5 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * lab_stand,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+int_m6 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+int_m7 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * lab_stand,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+int_m8 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = kis_subset)
+
+
+etable(int_m1, int_m2, int_m3, int_m4, int_m5, int_m6, int_m7, int_m8)
+
+etable(
+  int_m1, int_m2, int_m3, int_m4, int_m5, int_m6, int_m7, int_m8,
+  fitstat = c("r2", "ar2"),
+  digits = 3,
+  digits.stats = 3,
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  tex = FALSE
+)
 
 
 

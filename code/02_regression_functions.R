@@ -130,7 +130,7 @@ manufacturing_filter <- function(data)
 {
   data <- subset(
     data,
-    (ind1 >= 100 & ind2 >= 100 & ind1 < 300 & ind2 < 360)
+    (ind1 >= 100 & ind2 >= 100 & ind1 < 360 & ind2 < 360)
   )
   return(data)
 }
