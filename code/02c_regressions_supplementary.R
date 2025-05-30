@@ -1183,6 +1183,36 @@ write.table(mf_df,
 
 
 
+# interaction mdoels -- patent X IO
+int_m1 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * cr_norm + lab_stand,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+int_m2 <- feols(egk_coagg_stand_nuts4 ~ io_wiot_hun_stand * cr_norm + lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+int_m3 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * cr_norm + lab_stand,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+int_m4 <- feols(egk_coagg_stand_nuts4 ~ io3_stand * cr_norm + lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+
+int_m5 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * cr_norm + lab_stand,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+int_m6 <- feols(coagg_porter_rca01_stand_nuts4 ~ io_wiot_hun_stand * cr_norm + lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+int_m7 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * cr_norm + lab_stand,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+int_m8 <- feols(coagg_porter_rca01_stand_nuts4 ~ io3_stand * cr_norm + lab_stand | ind1 + ind2,
+                cluster = ~ind1 + ind2,
+                data = reg_df)
+
+etable(int_m1, int_m2, int_m3, int_m4, int_m5, int_m6, int_m7, int_m8)
+
+
 
 
 
