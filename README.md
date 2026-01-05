@@ -17,3 +17,10 @@ Juhász, S., Elekes, Z., Ilyés, V. and Neffke, F. (2026) Co-location of skill r
 ├── data/                # Aggregate, shareable data used for reproducibility
 └── README.md
 ```
+
+**Interactive data visualization site** <br/>
+Explore the aggregate data behind the paper at: [https://vis.csh.ac.at/colocation-suppliers/](https://vis.csh.ac.at/colocation-suppliers/). (Site was designed by Tobias Batik.)
+
+**Data repository** <br/>
+Aggregate data on skill relatedness, input–output relatedness, and the underlying industry–region level networks visualized on the interactive site are available at:  
+[https://zenodo.org/records/13753930](https://zenodo.org/records/13753930)
