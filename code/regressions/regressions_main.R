@@ -1,8 +1,7 @@
-# regression tables for the paper -- sandorjuhasz
+# MAIN regression tables for the paper -- sandorjuhasz
 # setup is the same as in the Databank
 
 
-library(emmeans)
 library(data.table)
 library(dplyr)
 library(lmtest)
@@ -14,7 +13,7 @@ library(lmtest)
 library(margins)
 library(stargazer)
 
-source("../code/02_regression_functions.R")
+source("../../code/regressions/regressions_utils.R")
 
 
 
@@ -60,7 +59,7 @@ stargazer(
     "Labor (Swedish SR)",
     "IO (WIOD mean)"
   ),
-  out = paste0("../outputs/Table1_descr_stats_table.html")
+  out = paste0("../../data/outputs/Table1_descr_stats_table.html")
 )
 
 
@@ -382,7 +381,7 @@ mf_df <- rbind(mf11, mf12, mf21, mf22, mf31, mf32, mf41, mf42)
 
 # export
 write.table(mf_df,
-            paste0("../outputs/marginal_effects_for_interplots.csv"),
+            paste0("../../data/outputs/marginal_effects_for_interplots.csv"),
             row.names = FALSE,
             col.names = TRUE,
             sep = ";"
