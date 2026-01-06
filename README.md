@@ -10,17 +10,22 @@ Juhász, S., Elekes, Z., Ilyés, V. and Neffke, F. (2026) Co-location of skill r
 **Repository structure** <br/>
 ```
 ├── code/
-│   ├── databank/        # Scripts executed in the secured Databank environment
-│   ├── regressions/     # Reproducible code for all regression analyses
-│   ├── visuals/         # Notebooks for figures and visualizations
+│   ├── databank/            # Scripts executed in the secured Databank environment
+│   ├── regressions/         # Reproducible code for all regression analyses
+│   ├── visuals/             # Notebooks for figures and visualizations
 │
-├── data/                # Aggregate, shareable data used for reproducibility
+├── data/
+│   ├── databank_oc/         # Output-checked aggregate data tables from the Databank
+│   ├── outputs/             # Model outputs and intermediate data tables
+│
 └── README.md
 ```
 
 **Explore the geography of labor flows and input-output connections** <br/>
-Interactive data visualization site: [https://vis.csh.ac.at/colocation-suppliers/](https://vis.csh.ac.at/colocation-suppliers/) designed by Tobias Batik from Complexity Science Hub, Vienna.
+Interactive data visualization site:  
+https://vis.csh.ac.at/colocation-suppliers/  
+Designed by Tobias Batik (Complexity Science Hub, Vienna).
 
 **Data repository** <br/>
 Aggregate data on skill relatedness, input–output relatedness, and the underlying industry–region level networks visualized on the interactive site are available at:  
-[https://zenodo.org/records/13753930](https://zenodo.org/records/13753930)
+https://zenodo.org/records/13753930
