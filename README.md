@@ -17,8 +17,10 @@ Juhász, S., Elekes, Z., Ilyés, V. and Neffke, F. (2026) Co-location of skill r
 ├── data/
 │   ├── databank_oc/         # Output-checked aggregate data tables from the Databank
 │   ├── outputs/             # Model outputs and intermediate data tables
+│   ├── shape_files/         # Shapefiles used for visualizations
 │
 └── README.md
+
 ```
 
 **Explore the geography of labor flows and input-output connections** <br/>
