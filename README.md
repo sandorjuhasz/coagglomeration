@@ -2,7 +2,7 @@
 
 This repository contains data and code to reproduce the results and visualizations of the following research paper:
 
-Juhász, S., Elekes, Z., Ilyés, V. and Neffke, F. (2026) Co-location of skill related suppliers: Advancing coagglomeration research using firm-to-firm network data. **Journal of Economic Geography**, in press. Working paper: [https://arxiv.org/abs/2405.07071](https://arxiv.org/abs/2405.07071)
+Juhász, S., Elekes, Z., Ilyés, V. and Neffke, F. (2026) Co-location of skill related suppliers: Advancing coagglomeration research using firm-to-firm network data. **Journal of Economic Geography**, lbag006. [https://doi.org/10.1093/jeg/lbag006](https://doi.org/10.1093/jeg/lbag006)
 
 **Abstract** <br/>
 *Firms in industry clusters benefit from locating close to suppliers and customers. However, the pervasiveness of global value chains questions the need for co-location in buyer-supplier relationships. We propose that supply-chain partners are more likely to co-locate if they exchange not only goods but also know-how, implying superadditivity of Marshallian agglomeration channels. We test this in a coagglomeration framework using microdata for Hungary -- a small, open economy deeply embedded in global value chains -- examining co-location, labor flows and value chains between firms and industries. We find that supply chains foster co-location primarily among firms in skill related industries.*
